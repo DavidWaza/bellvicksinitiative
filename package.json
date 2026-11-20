@@ -1,0 +1,59 @@
+{
+  "name": "bellvicksinitiative",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "prepare": "husky || exit 0",
+    "typecheck": "nuxt typecheck",
+    "lint": "oxlint app",
+    "lint:fix": "oxlint app --fix",
+    "format": "oxfmt --check app",
+    "format:fix": "oxfmt app",
+    "knip": "knip"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  },
+  "devDependencies": {
+    "@phosphor-icons/core": "^2.1.1",
+    "@types/luxon": "^3.7.6",
+    "@types/node": "^26.6.6",
+    "husky": "^9.1.7",
+    "knip": "^6.46.1",
+    "nano-staged": "^1.0.2",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.14"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "^1.2.0",
+    "@nuxt/image": "^2.2.1",
+    "@nuxtjs/robots": "^6.2.4",
+    "@nuxtjs/sitemap": "^8.6.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "@tanstack/vue-query": "^5.108.1",
+    "@vee-validate/yup": "^4.15.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "embla-carousel-vue": "^8.6.0",
+    "luxon": "^3.7.2",
+    "notivue": "^2.4.5",
+    "nuxt": "^4.5.2",
+    "reka-ui": "^2.11.0",
+    "tailwind-merge": "^3.7.1",
+    "tailwindcss": "^4.3.5",
+    "vee-validate": "^4.15.1",
+    "vue": "^3.5.46",
+    "yup": "^1.7.1"
+  },
+  "nano-staged": {
+    "app/**/*.{ts,vue,css}": "oxfmt"
+  }
+}

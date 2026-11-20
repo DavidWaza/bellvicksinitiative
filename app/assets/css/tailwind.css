@@ -1,0 +1,424 @@
+@import "tailwindcss";
+
+/*
+ * Fraunces (variable, all axes incl. SOFT + opsz), self-hosted from public/fonts so the latin
+ * file can be preloaded in app.vue — a late swap of the display face shifted the hero (CLS).
+ * Source: @fontsource-variable/fraunces "full" files, SIL OFL (public/fonts/FRAUNCES-OFL.txt).
+ * DM Sans and Caveat come from @nuxt/fonts.
+ */
+@font-face {
+  font-family: "Fraunces Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/fraunces-latin-full.woff2") format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Fraunces Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/fraunces-latin-ext-full.woff2") format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/*
+ * Design tokens — the single source of truth (ARCHITECTURE §2).
+ *
+ * `--color-*: initial` wipes Tailwind's stock palette. `bg-violet-500` renders NOTHING, silently.
+ * Only the ramps below exist. Raw hex lives in :root, `@theme inline` maps it to utilities.
+ */
+
+@layer base {
+  :root {
+    /* base: warm neutrals. 50 is the page cream. */
+    --base-0: #ffffff;
+    --base-50: #fffbf5;
+    --base-100: #f6f0e7;
+    --base-150: #ece3d6;
+    --base-400: #a79c8c; /* decorative only — fails 4.5:1 as text */
+    --base-500: #7a705f; /* ≥4.5:1 on white/cream only; prefer 550 for small text */
+    --base-550: #625a4c;
+    --base-600: #4b4439;
+    --base-900: #1d1a15;
+    --base-950: #12100d;
+
+    /* forest: brand. nav, headings on tint, footer (900). */
+    --forest-50: #eef5f0;
+    --forest-100: #d5e8dc;
+    --forest-150: #b9d8c4;
+    --forest-500: #1f5b3f;
+    --forest-600: #174a33;
+    --forest-900: #0f3526;
+
+    /* accent: "sunrise orange". Donate / Send Relief, highlights. 700 = text-safe on light tints. */
+    --accent-50: #fff4ea;
+    --accent-100: #ffe3c7;
+    --accent-150: #ffd0a3;
+    --accent-500: #f28c28;
+    --accent-600: #d9741a;
+    --accent-700: #a8540a;
+
+    /* coral: hearts, Children's Books accents (decorative, not errors). */
+    --coral-50: #fff0ee;
+    --coral-100: #ffd9d4;
+    --coral-150: #ffc0b8;
+    --coral-500: #ef5b4c;
+    --coral-600: #d8473a;
+    --coral-700: #b0372c;
+
+    /* sun: doodles, stickers, "New" badges. */
+    --sun-50: #fff8e6;
+    --sun-100: #ffedbf;
+    --sun-150: #ffe199;
+    --sun-500: #f6b93b;
+    --sun-600: #e0a020;
+
+    --lavender-50: #f4f0fb;
+    --lavender-100: #e6ddf6;
+    --lavender-150: #d6c9f0;
+    --lavender-500: #7b5ec4;
+    --lavender-600: #6748ae;
+
+    --sky-50: #edf6fd;
+    --sky-100: #d3e9fa;
+    --sky-150: #b6daf6;
+    --sky-500: #3a8fd6;
+    --sky-600: #2a76b8;
+    --sky-700: #1f5f96;
+
+    /* Semantic status ramps. NEVER decoration. Not in the brief — chosen to pass 4.5:1 (600 on 50). */
+    --green-50: #ecfdf3;
+    --green-100: #d1fadf;
+    --green-150: #a6f4c5;
+    --green-500: #12b76a;
+    --green-600: #067647;
+
+    --red-50: #fef3f2;
+    --red-100: #fee4e2;
+    --red-150: #fecdca;
+    --red-500: #f04438;
+    --red-600: #b42318;
+
+    --yellow-50: #fffaeb;
+    --yellow-100: #fef0c7;
+    --yellow-150: #fedf89;
+    --yellow-500: #f79009;
+    --yellow-600: #b54708;
+
+    --radius: 1rem;
+  }
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-base-0: var(--base-0);
+  --color-base-50: var(--base-50);
+  --color-base-100: var(--base-100);
+  --color-base-150: var(--base-150);
+  --color-base-400: var(--base-400);
+  --color-base-500: var(--base-500);
+  --color-base-550: var(--base-550);
+  --color-base-600: var(--base-600);
+  --color-base-900: var(--base-900);
+  --color-base-950: var(--base-950);
+
+  --color-forest-50: var(--forest-50);
+  --color-forest-100: var(--forest-100);
+  --color-forest-150: var(--forest-150);
+  --color-forest-500: var(--forest-500);
+  --color-forest-600: var(--forest-600);
+  --color-forest-900: var(--forest-900);
+
+  /* mint = alias of forest 50–150, used for section bands */
+  --color-mint-50: var(--forest-50);
+  --color-mint-100: var(--forest-100);
+  --color-mint-150: var(--forest-150);
+
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-150: var(--accent-150);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+
+  --color-coral-50: var(--coral-50);
+  --color-coral-100: var(--coral-100);
+  --color-coral-150: var(--coral-150);
+  --color-coral-500: var(--coral-500);
+  --color-coral-600: var(--coral-600);
+  --color-coral-700: var(--coral-700);
+
+  --color-sun-50: var(--sun-50);
+  --color-sun-100: var(--sun-100);
+  --color-sun-150: var(--sun-150);
+  --color-sun-500: var(--sun-500);
+  --color-sun-600: var(--sun-600);
+
+  --color-lavender-50: var(--lavender-50);
+  --color-lavender-100: var(--lavender-100);
+  --color-lavender-150: var(--lavender-150);
+  --color-lavender-500: var(--lavender-500);
+  --color-lavender-600: var(--lavender-600);
+
+  --color-sky-50: var(--sky-50);
+  --color-sky-100: var(--sky-100);
+  --color-sky-150: var(--sky-150);
+  --color-sky-500: var(--sky-500);
+  --color-sky-600: var(--sky-600);
+  --color-sky-700: var(--sky-700);
+
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-150: var(--green-150);
+  --color-green-500: var(--green-500);
+  --color-green-600: var(--green-600);
+
+  --color-red-50: var(--red-50);
+  --color-red-100: var(--red-100);
+  --color-red-150: var(--red-150);
+  --color-red-500: var(--red-500);
+  --color-red-600: var(--red-600);
+
+  --color-yellow-50: var(--yellow-50);
+  --color-yellow-100: var(--yellow-100);
+  --color-yellow-150: var(--yellow-150);
+  --color-yellow-500: var(--yellow-500);
+  --color-yellow-600: var(--yellow-600);
+
+  /* One breakpoint definition for the whole app (no Vuetify, so no second copy). */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1536px;
+  --breakpoint-2xl: 1920px;
+
+  --spacing: 0.25rem;
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-3xl: calc(var(--radius) + 24px);
+
+  --shadow-soft: 0 10px 30px -12px rgb(29 26 21 / 0.12);
+
+  --font-display: "Fraunces Variable", "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+
+  --animate-pin-pulse: pin-pulse 2s ease-out infinite;
+}
+
+@keyframes pin-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--base-50);
+    color: var(--base-900);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  @media (min-width: 960px) {
+    html {
+      font-size: 17px;
+    }
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-optical-sizing: auto;
+    font-variation-settings: "SOFT" 50;
+    text-wrap: balance;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /*
+   * Focus ring: ring-2 + 2px cream offset like the brief, but in accent-600 and 3px so the
+   * indicator clears 3:1 against cream (accent-500 only reaches 2.4:1). See docs/design/contrast.md.
+   */
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--base-50),
+      0 0 0 5px var(--accent-600);
+    border-radius: inherit;
+  }
+
+  ::selection {
+    background: var(--accent-150);
+    color: var(--base-950);
+  }
+}
+
+@layer components {
+  /* Gentle fade-up on scroll. Only hidden once the head script has added .motion-ok, so content is
+     always visible without JS or under prefers-reduced-motion. */
+  .motion-ok [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .motion-ok [data-reveal] {
+    transition:
+      opacity 400ms ease-out,
+      transform 400ms ease-out;
+  }
+  /* 60ms stagger per index */
+  .motion-ok [data-reveal="1"] {
+    transition-delay: 60ms;
+  }
+  .motion-ok [data-reveal="2"] {
+    transition-delay: 120ms;
+  }
+  .motion-ok [data-reveal="3"] {
+    transition-delay: 180ms;
+  }
+  .motion-ok [data-reveal="4"] {
+    transition-delay: 240ms;
+  }
+  .motion-ok [data-reveal="5"] {
+    transition-delay: 300ms;
+  }
+  .motion-ok [data-reveal="6"] {
+    transition-delay: 360ms;
+  }
+
+  /* Doodles draw in once via stroke-dashoffset (paths carry pathLength="1"), revealed by the
+     inline head script. */
+  .motion-ok [data-draw]:not([data-revealed]) path,
+  .motion-ok [data-draw]:not([data-revealed]) circle {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .motion-ok [data-draw][data-revealed] path,
+  .motion-ok [data-draw][data-revealed] circle {
+    stroke-dasharray: 1;
+    animation: draw 900ms ease-out both;
+  }
+}
+
+@layer components {
+  .sheet-overlay[data-state="open"] {
+    animation: fade-in 200ms ease-out;
+  }
+  .sheet-overlay[data-state="closed"] {
+    animation: fade-out 160ms ease-in;
+  }
+  .sheet-content[data-state="open"] {
+    animation: sheet-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sheet-content[data-state="closed"] {
+    animation: sheet-out 180ms ease-in;
+  }
+
+  /* Header mobile menu: a native <dialog> (no library). */
+  .mobile-menu::backdrop {
+    background: rgb(18 16 13 / 0.5);
+  }
+  .mobile-menu[open] {
+    animation: sheet-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .mobile-menu[open]::backdrop {
+    animation: fade-in 200ms ease-out;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Utilities used across the system */
+
+/* Below-the-fold sections: skip layout/paint until near the viewport (cut ~0.3s of TBT on the
+   homepage). `auto` in contain-intrinsic-size remembers the real height once rendered. */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "app/pages/**/*.vue",
+    "app/layouts/**/*.vue",
+    "app/plugins/**/*.ts",
+    "app/features/*/*/index.ts",
+    "app/features/*/*/*/index.ts",
+    "app/features/**/composition/*.ts",
+    "app/features/**/ui/**/*.vue",
+    "app/components/**/*.vue",
+    "app/composables/**/*.ts",
+    "app/utils/**/*.ts",
+    "scripts/*.mjs"
+  ],
+  "project": [
+    "app/**/*.{ts,vue}",
+    "scripts/*.mjs"
+  ],
+  "ignoreDependencies": [
+    "vue-tsc",
+    "@phosphor-icons/core"
+  ]
+}

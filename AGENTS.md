@@ -13,6 +13,7 @@ npm run lint         # oxlint app
 npm run typecheck    # nuxt typecheck (vue-tsc)
 npm run knip         # unused files / exports / deps
 npm run build        # production build + prerender (~30s here)
+npm run build:launch # same, but FAILS while invented sample content remains (run before going live)
 node .output/server/index.mjs   # serve the production build (PORT=6301 to pick a port)
 node scripts/contrast-report.mjs   # regenerate docs/design/contrast.md
 node scripts/generate-dot-map.mjs  # regenerate the dotted world-map path
@@ -69,8 +70,8 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
 - **Sample content (temporary).** For demos, the slots above are currently filled with INVENTED
   values wrapped in `sample(...)` (`shared/sample-content.ts`): impact figures, cause funding and
   status, book titles, the story, news posts, testimonials and team names. `grep "sample("` lists
-  them all. **A production build fails while any remain** (the `ready` hook in `nuxt.config.ts`),
-  unless `ALLOW_SAMPLE_CONTENT=1` is set for a demo deploy. The CAC number is never sampled.
+  them all. `npm run build` prints a loud warning listing them (the `ready` hook in `nuxt.config.ts`);
+  **`npm run build:launch` fails while any remain**, so run it before going live. The CAC number is never sampled.
 
 ## Things that surprised us (read before changing them)
 

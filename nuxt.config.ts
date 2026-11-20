@@ -18,13 +18,16 @@ const sampleFiles = globSync("**/*.{ts,vue}", { cwd: appDir }).filter((f) =>
 
 export default defineNuxtConfig({
   hooks: {
-    // Never ship invented facts by accident. A demo deploy can opt in with ALLOW_SAMPLE_CONTENT=1.
+    // Invented sample content: `npm run build` warns loudly; `npm run build:launch`
+    // (STRICT_CONTENT=1) refuses to build, so the real launch can't ship invented facts.
     ready: (nuxt) => {
-      if (nuxt.options.dev || nuxt.options._prepare) return;
-      if (process.env.ALLOW_SAMPLE_CONTENT === "1" || sampleFiles.length === 0) return;
-      throw new Error(
-        `Sample (invented) content is still used in:\n  ${sampleFiles.join("\n  ")}\n` +
-          "Replace it with real content, or set ALLOW_SAMPLE_CONTENT=1 for a demo build.",
+      if (nuxt.options.dev || nuxt.options._prepare || sampleFiles.length === 0) return;
+      const list = `Sample (invented) content is still used in:\n  ${sampleFiles.join("\n  ")}\n`;
+      if (process.env.STRICT_CONTENT === "1")
+        throw new Error(`${list}Replace it with real content before the launch build.`);
+      console.warn(
+        `\n⚠  ${list}⚠  This build INCLUDES invented figures, quotes and names. Fine for previews; ` +
+          "before going live, replace them and check with `npm run build:launch`.\n",
       );
     },
   },

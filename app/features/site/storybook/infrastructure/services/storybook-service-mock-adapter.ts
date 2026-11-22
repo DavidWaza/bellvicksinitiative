@@ -16,10 +16,8 @@ const GENERATE_LATENCY_MS = 2400;
  */
 export default function useStorybookServiceMockAdapter(): StorybookServicePort {
   const aiCovers = useAiCovers();
-  const hasServer = !useRuntimeConfig().public.staticSite;
   return {
-    submitStorybook: (input, photo) =>
-      hasServer ? submitStorybookHttp(input, photo) : Promise.resolve(okResponse(null)),
+    submitStorybook: (input, photo) => submitStorybookHttp(input, photo),
     illustrateCovers: (input, photo) =>
       aiCovers ? illustrateCoversHttp(input, photo) : Promise.resolve(okResponse([])),
     generateBooks: (input) =>

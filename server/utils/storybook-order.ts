@@ -3,7 +3,7 @@
  *
  * Paystack carries the order as metadata (books, each child's form details, delivery, totals). The
  * children's photos are too big for metadata, so the checkout hands them to `holdOrderPhotos`
- * (kept in memory for a day); the order email attaches them. The email is sent by whichever comes
+ * (shared store, kept for a day); the order email attaches them. The email is sent by whichever comes
  * first, the customer's return to /checkout/complete or Paystack's webhook, and only once.
  */
 
@@ -59,16 +59,30 @@ export function isGenuinePayment(tx: PaystackTransaction | undefined): tx is Pay
 }
 
 // ---------------------------------------------------------------------------------------------
-// Photos held between checkout and payment (in memory; one server process).
+// Photos held between checkout and payment (shared store, see kv.ts; kept for a day).
 
 type HeldPhoto = { child: string; content: string; ext: string };
-const held = new Map<string, { photos: HeldPhoto[]; expires: number }>();
-const DAY = 24 * 60 * 60 * 1000;
+const DAY_SECONDS = 24 * 60 * 60;
+/** Stay well under the store's per-value limit (Upstash: 1 MB per request on the free plan). */
+const MAX_HELD_CHARS = 900_000;
 
-export function holdOrderPhotos(reference: string, photos: HeldPhoto[]) {
-  const now = Date.now();
-  for (const [ref, v] of held) if (v.expires < now) held.delete(ref);
-  if (photos.length) held.set(reference, { photos, expires: now + DAY });
+export async function holdOrderPhotos(reference: string, photos: HeldPhoto[]): Promise<void> {
+  const kept: HeldPhoto[] = [];
+  let size = 0;
+  for (const p of photos) {
+    if (size + p.content.length > MAX_HELD_CHARS) break;
+    kept.push(p);
+    size += p.content.length;
+  }
+  if (kept.length) await kvSet(`order:photos:${reference}`, JSON.stringify(kept), DAY_SECONDS);
+}
+
+async function heldPhotos(reference: string): Promise<HeldPhoto[]> {
+  try {
+    return JSON.parse((await kvGet(`order:photos:${reference}`)) ?? "[]");
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -83,12 +97,11 @@ const ANSWER_LABELS: Record<string, string> = {
 };
 const naira = (n: number | undefined) => `₦${Number(n ?? 0).toLocaleString("en-NG")}`;
 
-/** References already emailed, so a reload or a repeated webhook never sends a second email. */
-const emailed = new Set<string>();
-
 export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
-  if (emailed.has(tx.reference)) return;
-  emailed.add(tx.reference);
+  // One email per order, even when the confirmation page and Paystack's webhook arrive together
+  // in different Vercel instances: only the caller that sets this marker first sends.
+  const marker = `order:emailed:${tx.reference}`;
+  if (!(await kvSetIfAbsent(marker, 30 * DAY_SECONDS))) return;
 
   const order = tx.metadata?.order;
   const c = order?.customer ?? {};
@@ -124,7 +137,7 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
     })
     .join("\n\n");
 
-  const photos = held.get(tx.reference)?.photos ?? [];
+  const photos = await heldPhotos(tx.reference);
   const missingPhotos = items.some((i) => i.hasPhoto) && !photos.length;
 
   try {
@@ -162,9 +175,9 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
         content: p.content,
       })),
     });
-    held.delete(tx.reference);
+    await kvDel(`order:photos:${tx.reference}`);
   } catch (e) {
-    emailed.delete(tx.reference); // let the next attempt (reload or webhook retry) try again
+    await kvDel(marker).catch(() => undefined); // let the next attempt (reload or webhook retry) try again
     // oxlint-disable-next-line no-console
     console.error("[order email]", tx.reference, (e as { data?: unknown })?.data ?? e);
   }

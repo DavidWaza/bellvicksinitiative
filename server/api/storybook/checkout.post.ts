@@ -68,19 +68,18 @@ export default defineEventHandler(async (event) => {
 
   // Each child's shrunk photo (from the cart), held for the order email; Paystack metadata is too
   // small for images. One photo per child, even if they have several books.
+  // The browser sends each child's photo once (on their first book), so "has a photo" is per child.
   const photos: { child: string; content: string; ext: string }[] = [];
-  const photoOf = (i: (typeof items)[number]) => {
+  const childKey = (i: (typeof items)[number]) => `${i.child.name.trim()}-${i.child.age}`;
+  for (const i of items) {
     const m =
-      typeof i.photo === "string"
+      typeof i.photo === "string" && i.photo.length <= MAX_PHOTO_CHARS
         ? i.photo.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/)
         : null;
-    if (!m || i.photo!.length > MAX_PHOTO_CHARS) return false;
-    const child = `${i.child.name.trim()}-${i.child.age}`;
-    if (!photos.some((p) => p.child === child))
-      photos.push({ child, content: m[2]!, ext: m[1] === "jpeg" ? "jpg" : m[1]! });
-    return true;
-  };
-  const hasPhoto = items.map(photoOf);
+    if (m && !photos.some((p) => p.child === childKey(i)))
+      photos.push({ child: childKey(i), content: m[2]!, ext: m[1] === "jpeg" ? "jpg" : m[1]! });
+  }
+  const hasPhoto = items.map((i) => photos.some((p) => p.child === childKey(i)));
 
   const res = await paystackApi<{
     status: boolean;
@@ -154,7 +153,7 @@ export default defineEventHandler(async (event) => {
   if (!res?.status || !res.data?.authorization_url)
     return apiFail("We couldn't start the payment just now. Please try again in a moment.");
 
-  holdOrderPhotos(reference, photos);
+  await holdOrderPhotos(reference, photos);
 
   return {
     status: true as const,

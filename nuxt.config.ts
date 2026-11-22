@@ -11,15 +11,6 @@ const uiDirs = globSync("features/**/ui", { cwd: appDir });
 
 const SITE_URL = process.env.NUXT_PUBLIC_SITE_URL ?? "https://bellvicksinitiative.org";
 
-/**
- * `nuxt generate` makes a STATIC site (e.g. a cPanel upload): plain files, no server. Anything that
- * needs our server (AI covers, Paystack checkout) must be off there, whatever .env says, or the
- * pages call an API that doesn't exist. Overriding process.env also covers prerendering, which
- * re-reads NUXT_PUBLIC_* from the environment.
- */
-const STATIC_SITE = process.argv.includes("generate");
-if (STATIC_SITE) process.env.NUXT_PUBLIC_STORYBOOK_AI_COVERS = "0";
-
 /** Files still using invented demo values (shared/sample-content.ts). */
 const sampleFiles = globSync("**/*.{ts,vue}", { cwd: appDir }).filter((f) =>
   readFileSync(join(appDir, f), "utf8").includes("~/shared/sample-content"),
@@ -112,8 +103,6 @@ export default defineNuxtConfig({
     public: {
       // Must match the server key being set (build AND runtime): it changes the photo consent text.
       storybookAiCovers: process.env.NUXT_PUBLIC_STORYBOOK_AI_COVERS === "1",
-      /** True for `nuxt generate` builds: no server, so no online payment. */
-      staticSite: STATIC_SITE,
       // Storybook prices in naira. -1 = not set yet (checkout shows "price coming soon").
       // 0 delivery = free delivery. Read at build time too: rebuild after changing.
       storybookPriceNgn: -1,
@@ -125,8 +114,8 @@ export default defineNuxtConfig({
     },
   },
 
-  // Serve prerendered HTML/JS/CSS pre-compressed (br + gzip).
-  nitro: { compressPublicAssets: true },
+  // Hosted on Vercel: Nitro detects it and builds Vercel functions (preset "vercel"); Vercel
+  // compresses responses itself. Prerendered pages are served from Vercel's CDN.
 
   routeRules: {
     ...Object.fromEntries(PRERENDER_PATHS.map((path) => [path, { prerender: true }])),

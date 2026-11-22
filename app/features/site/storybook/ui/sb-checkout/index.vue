@@ -241,12 +241,7 @@
               }}
             </NButton>
             <p v-if="!chargeable" class="mt-3 text-sm text-base-550">
-              {{
-                staticSite
-                  ? "Online payment isn't available on this site yet."
-                  : "Online ordering for this delivery option opens soon."
-              }}
-              To order now,
+              Online ordering for this delivery option opens soon. To order now,
               <NuxtLink :to="ROUTES.contact" class="underline underline-offset-2"
                 >contact us</NuxtLink
               >.
@@ -306,9 +301,7 @@ watch(zone, () => (state.value = ""));
 
 const currentZone = computed<DeliveryZone>(() => zone.value ?? "nigeria");
 const totals = computed(() => cartTotals(items.value, pricing, currentZone.value));
-/** A static upload (no server) can't reach Paystack, so it never offers to pay. */
-const staticSite = useRuntimeConfig().public.staticSite;
-const chargeable = computed(() => !staticSite && canCharge(pricing, currentZone.value));
+const chargeable = computed(() => canCharge(pricing, currentZone.value));
 
 const fee = (z: DeliveryZone) =>
   z === "nigeria" ? pricing.deliveryNigeria : pricing.deliveryInternational;

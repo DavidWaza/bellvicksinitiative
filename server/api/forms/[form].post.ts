@@ -145,7 +145,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? "unknown";
-  if (!underFormLimit(ip))
+  if (!(await underFormLimit(ip)))
     return apiFail("You've sent several forms in a short time. Please try again in an hour.");
 
   try {

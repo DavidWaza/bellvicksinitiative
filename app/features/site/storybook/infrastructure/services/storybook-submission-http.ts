@@ -1,5 +1,6 @@
 import type { ApiResponse } from "~/shared/api-response";
 import { failResponse } from "~/shared/response-helpers";
+import { shrinkPhotoForUpload } from "~/utils/downscale-image";
 import type { GenerateInput } from "../../ports/storybook.port";
 
 /**
@@ -12,7 +13,7 @@ export async function submitStorybookHttp(
 ): Promise<ApiResponse<{ received: true } | null>> {
   const form = new FormData();
   form.append("draft", JSON.stringify(input));
-  if (photo) form.append("photo", photo);
+  if (photo) form.append("photo", await shrinkPhotoForUpload(photo), "photo.jpg");
   try {
     return await $fetch("/api/storybook/submission", {
       method: "POST",

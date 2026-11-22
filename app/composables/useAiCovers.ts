@@ -1,10 +1,9 @@
 /**
- * Whether storybook AI covers are on for THIS build. Needs both the switch
- * (NUXT_PUBLIC_STORYBOOK_AI_COVERS=1) and a server: a static upload (`nuxt generate`, e.g.
- * cPanel) has no /api, so covers stay drawn there even if .env switches them on.
+ * Whether storybook AI covers are switched on (NUXT_PUBLIC_STORYBOOK_AI_COVERS=1). It changes the
+ * photo consent text and privacy policy, and whether the wizard asks the server for covers. The
+ * server also needs NUXT_OPENAI_API_KEY.
  */
 export function useAiCovers(): boolean {
-  const pub = useRuntimeConfig().public;
-  const on = pub.storybookAiCovers === true || String(pub.storybookAiCovers) === "1";
-  return on && !pub.staticSite;
+  const flag = useRuntimeConfig().public.storybookAiCovers;
+  return flag === true || String(flag) === "1";
 }

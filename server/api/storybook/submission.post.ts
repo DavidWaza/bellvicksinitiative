@@ -21,7 +21,8 @@ const EXT: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const MAX_BYTES = 10 * 1024 * 1024;
+/** Vercel functions accept at most 4.5 MB per request; the browser shrinks photos first. */
+const MAX_BYTES = 4 * 1024 * 1024;
 
 type Draft = Omit<StoryDraft, "hasPhoto">;
 
@@ -67,7 +68,7 @@ export default defineEventHandler(async (event) => {
   const photoOk = photo?.type && ALLOWED.has(photo.type) && photo.data.length <= MAX_BYTES;
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? "unknown";
-  if (!underFormLimit(ip)) return apiFail("Too many submissions. Please try again later.");
+  if (!(await underFormLimit(ip))) return apiFail("Too many submissions. Please try again later.");
 
   // Re-written here from the answers, so the email lists exactly the stories the parent saw.
   const books = writeStories(draft);

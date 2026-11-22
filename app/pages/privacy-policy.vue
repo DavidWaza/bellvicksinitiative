@@ -68,7 +68,7 @@
     </p>
 
     <h2>Storybook photos</h2>
-    <p v-if="hasServer">
+    <p>
       When you create a storybook, a parent or guardian must agree before a child's photo is used.
       Your answers and the photo are emailed to the Bellvicks storybook team, only so we can
       illustrate and print that child's books.
@@ -78,11 +78,6 @@
       </template>
       We don't publish the photo or use it for anything else, and you can ask us to delete it at any
       time.
-    </p>
-    <p v-else>
-      When you create a storybook, a parent or guardian must agree before a child's photo is used.
-      The photo stays on your own device while you preview your books; we only receive it if you
-      place an order, and use it only to illustrate those books.
     </p>
 
     <h2>Your rights</h2>
@@ -103,7 +98,6 @@ import { SITE_INFO } from "~/shared/site-info";
 import { ROUTES } from "~/shared/site-routes";
 
 const aiCovers = useAiCovers();
-const hasServer = !useRuntimeConfig().public.staticSite;
 
 const address = `${SITE_INFO.address.street}, ${SITE_INFO.address.locality}, ${SITE_INFO.address.country}`;
 

@@ -86,16 +86,12 @@
             >Privacy policy</NuxtLink
           >
         </template>
-        <template v-else-if="hasServer">
+        <template v-else>
           and I agree to this photo being sent to the Bellvicks storybook team, only to illustrate
           and print {{ name || "their" }}'s books.
           <NuxtLink :to="ROUTES.privacy" class="underline underline-offset-2"
             >Privacy policy</NuxtLink
           >
-        </template>
-        <template v-else>
-          and I agree to this photo being used only to illustrate this book. It stays on this device
-          until you place an order.
         </template>
       </span>
     </label>
@@ -112,8 +108,6 @@ const photoUrl = defineModel<string | null>("photoUrl", { required: true });
 /** The file itself, for illustrating the covers. */
 const photoFile = defineModel<Blob | null>("photoFile", { required: true });
 const aiCovers = useAiCovers();
-/** A server receives the submission (not on a static upload). */
-const hasServer = !useRuntimeConfig().public.staticSite;
 const consent = defineModel<boolean>("consent", { required: true });
 
 const MAX_BYTES = 10 * 1024 * 1024;

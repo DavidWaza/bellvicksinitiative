@@ -21,3 +21,14 @@ export async function downscaleToJpeg(
     return null;
   }
 }
+
+/**
+ * Shrinks a photo for UPLOAD (Vercel functions accept at most 4.5 MB per request). 1600px is
+ * plenty for the illustrator and the AI covers; a 10 MB phone photo becomes roughly 300–600 KB.
+ * Falls back to the original if the browser can't read it.
+ */
+export async function shrinkPhotoForUpload(blob: Blob, maxSide = 1600): Promise<Blob> {
+  const dataUrl = await downscaleToJpeg(blob, maxSide, 0.88);
+  if (!dataUrl) return blob;
+  return (await fetch(dataUrl)).blob();
+}

@@ -14,8 +14,7 @@ npm run typecheck    # nuxt typecheck (vue-tsc)
 npm run knip         # unused files / exports / deps
 npm run build        # production build + prerender (~30s here)
 npm run build:launch # same, but FAILS while invented sample content remains (run before going live)
-node .output/server/index.mjs   # serve the production build (PORT=6301 to pick a port)
-npm run generate && (cd .output/public && C:/Windows/System32/tar.exe -a -c -f ../../deploy/bellvicks-site.zip --exclude "*.br" --exclude "*.gz" .htaccess *)   # static cPanel zip → deploy/ (a build empties .output, so never keep the zip there)
+node .output/server/index.mjs   # run a local production build (PORT=6301 to pick a port)
 node scripts/contrast-report.mjs   # regenerate docs/design/contrast.md
 node scripts/generate-dot-map.mjs  # regenerate the dotted world-map path
 node scripts/generate-icons.mjs    # regenerate app/utils/icon-paths.ts after adding an icon
@@ -74,27 +73,18 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
   them all. `npm run build` prints a loud warning listing them (the `ready` hook in `nuxt.config.ts`);
   **`npm run build:launch` fails while any remain**, so run it before going live. The CAC number is never sampled.
 
-- **`nuxt generate` (static / cPanel upload) switches server features off by itself.** It sets
-  `public.staticSite`; `useAiCovers()` and checkout read it, so AI covers stay drawn and checkout
-  says "contact us" there even when `.env` turns them on (prerendering re-reads `.env`, so the
-  flag alone isn't enough). Real covers and payments need the Node build.
 - **Form emails (Resend).** Every form posts to our server, which emails it (`server/utils/email.ts`):
   storybook questionnaires (with the photo attached, `server/api/storybook/submission.post.ts`)
   and paid orders (`checkout/verify.get.ts`, once per reference) → `NUXT_STORYBOOK_EMAIL`;
   contact, volunteer, mentor, partner, pledge, newsletter and the homepage sign-up
   (`server/api/forms/[form].post.ts`, validated with the same yup schemas) →
   `NUXT_CONTACT_EMAIL`. Reply-To is the visitor. Browser side: `shared/form-post.ts`, which never
-  pretends: with no server (static upload) it fails with "please email us at …". **The built server
-  does not read `.env`**: set these in the host's environment.
-- **`deploy/bellvicks-node-prebuilt.zip`** is the built Node app for hosts that can't build (cPanel hit its
-  memory limits): `.output/` + `app.cjs` + a dependency-free `package.json` + `DEPLOY.txt`. A Windows
-  build only bundles Windows `sharp` binaries, so `@img/sharp-linux-x64` and
-  `@img/sharp-libvips-linux-x64` (versions from sharp's optionalDependencies) are unpacked into
-  `.output/server/node_modules/@img/` before zipping. Always scan `.output` for the real key values first.
+  pretends: if the server can't be reached it fails with "please email us at …". **Production
+  doesn't read `.env`**: set these in Vercel → Settings → Environment Variables.
 - **Paid storybook orders email the storybook inbox ONCE, complete** (`server/utils/storybook-order.ts`):
   totals, delivery, and per book the child's form details (gender, eyes, from, dedication, every
   answer, "inspired by") with each child's photo attached. The cart keeps a shrunk photo per book
-  (`utils/downscale-image.ts`, ~100 KB); checkout hands the photos to `holdOrderPhotos` (memory, 24h)
+  (`utils/downscale-image.ts`, ~100 KB); checkout hands the photos to `holdOrderPhotos` (shared store, 24h)
   because Paystack metadata can't carry images. Sent by whichever comes first: `/checkout/complete`
   (verify) or the **Paystack webhook** `/api/paystack/webhook` (HMAC-SHA512 signature checked;
   covers customers who close the tab). Both send in the background (`event.waitUntil`).
@@ -102,10 +92,24 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
 - **Never read `window.location.search` on a prerendered page's first mount.** While it hydrates,
   the router briefly replaces the address without its query string. `/checkout/complete` read it
   then, found no `?reference`, and no payment could ever be confirmed. Use `useRoute().query`.
-- **AI covers and storybook payments need a Node server.** Every page is prerendered, but
-  `/api/storybook/covers` and `/api/storybook/checkout` run on the Nitro server (a static-only
-  upload shows the cart but can't take payment), so deploy `.output/` as a Node app (or a host with serverless functions),
-  not as static files only.
+
+## Hosting: Vercel
+
+- **Vercel builds with `npm run build`** and Nitro's `vercel` preset (detected automatically):
+  prerendered pages go to the CDN, `server/api/*` become Vercel functions. No `vercel.json` needed.
+- **Environment variables** go in Vercel → Settings → Environment Variables (see `.env.example`).
+  `NUXT_PUBLIC_*` are read at BUILD time (prices, AI covers switch): redeploy after changing them.
+- **Functions don't share memory** (each request may run in a different instance). Anything the
+  server must remember between requests (order photos, "order already emailed", spam and spending
+  limits) goes through `server/utils/kv.ts` → **Upstash Redis** (Vercel → Storage; sets
+  `KV_REST_API_URL`/`KV_REST_API_TOKEN`). Locally it falls back to memory. A startup warning in
+  the Vercel logs (`server/plugins/check-store.ts`) says if it's missing. Never add a module-level
+  `Map`/`Set` as server state.
+- **4.5 MB request limit.** Photos are shrunk in the browser before upload
+  (`shrinkPhotoForUpload`, ~1600px JPEG) and checkout sends each child's photo once.
+- **Function time:** 300s by default (Fluid compute), enough for AI covers. Slow work after the
+  response (order emails) uses `event.waitUntil`.
+- **Paystack webhook:** `https://<domain>/api/paystack/webhook` in the Paystack dashboard.
 
 ## Things that surprised us (read before changing them)
 

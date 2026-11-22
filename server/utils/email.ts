@@ -79,13 +79,8 @@ export async function sendSiteEmail(email: SiteEmail): Promise<void> {
   });
 }
 
-// Simple spam guard: at most N form emails per visitor per hour (in-memory, one server process).
-const recent = new Map<string, number[]>();
-export function underFormLimit(ip: string, perHour = 10): boolean {
-  const now = Date.now();
-  const hits = (recent.get(ip) ?? []).filter((t) => now - t < 3_600_000);
-  if (hits.length >= perHour) return false;
-  hits.push(now);
-  recent.set(ip, hits);
-  return true;
+/** Spam guard: at most `perHour` form emails per visitor per hour (shared store, see kv.ts). */
+export async function underFormLimit(ip: string, perHour = 10): Promise<boolean> {
+  const hour = Math.floor(Date.now() / 3_600_000);
+  return (await kvIncr(`limit:form:${ip}:${hour}`, 3600)) <= perHour;
 }

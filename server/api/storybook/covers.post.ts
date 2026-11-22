@@ -11,7 +11,7 @@ import {
 /**
  * POST /api/storybook/covers — illustrates the three personalised covers for one child.
  *
- * multipart/form-data: `photo` (JPG/PNG/WebP, ≤10 MB) + `draft` (JSON of the questionnaire).
+ * multipart/form-data: `photo` (JPG/PNG/WebP, ≤4 MB; the browser shrinks it first) + `draft` (JSON of the questionnaire).
  * The stories are re-written HERE from the answers (never trusted from the browser), then each
  * cover is drawn by OpenAI's GPT Image model (the same model family Flick uses), with the child's
  * photo as the likeness reference. Nothing is stored: the photo goes to OpenAI and is discarded.
@@ -24,19 +24,15 @@ type CoverResult = { id: string; coverUrl: string };
 const fail = (message: string) => ({ status: false as const, message, data: null });
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_BYTES = 10 * 1024 * 1024;
+/** Vercel functions accept at most 4.5 MB per request; the browser shrinks photos first. */
+const MAX_BYTES = 4 * 1024 * 1024;
 
-// Simple in-memory daily counters (reset on restart; one server process). Good enough to stop
-// a runaway bill; use a shared store (Redis, DB) if the site ever runs on several instances.
-const usage = { day: "", total: 0, byIp: new Map<string, number>() };
-function allow(ip: string, perIp: number, perDay: number): boolean {
-  const today = new Date().toISOString().slice(0, 10);
-  if (usage.day !== today) Object.assign(usage, { day: today, total: 0, byIp: new Map() });
-  const mine = usage.byIp.get(ip) ?? 0;
-  if (mine >= perIp || usage.total >= perDay) return false;
-  usage.byIp.set(ip, mine + 1);
-  usage.total += 1;
-  return true;
+/** Daily spending guard, per visitor and for the whole site (shared store, see kv.ts). */
+async function allow(ip: string, perIp: number, perDay: number): Promise<boolean> {
+  const day = new Date().toISOString().slice(0, 10);
+  const mine = await kvIncr(`limit:covers:${day}:${ip}`, 86_400);
+  const total = await kvIncr(`limit:covers:${day}:all`, 86_400);
+  return mine <= perIp && total <= perDay;
 }
 
 function parseDraft(raw: string | undefined): Omit<StoryDraft, "hasPhoto"> | null {
@@ -121,7 +117,7 @@ export default defineEventHandler(async (event) => {
 
   // Only valid requests count towards the daily limits.
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? "unknown";
-  if (!allow(ip, Number(config.storybookCoversPerIp), Number(config.storybookCoversPerDay)))
+  if (!(await allow(ip, Number(config.storybookCoversPerIp), Number(config.storybookCoversPerDay))))
     return fail(
       "We've reached today's limit for illustrated covers. Your drawn covers are ready below; please try again tomorrow.",
     );

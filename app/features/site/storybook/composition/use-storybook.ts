@@ -5,5 +5,10 @@ import useStorybookServiceMockAdapter from "../infrastructure/services/storybook
 /** THE SWAP POINT is the service line below. */
 export default function useStorybook() {
   const service = useStorybookServiceMockAdapter(); // ← swap for useStorybookServiceHttpAdapter()
-  return useStorybookApp({ deps: { mutationPort: useStorybookMutationAdapter(service) } });
+  return useStorybookApp({
+    deps: {
+      mutationPort: useStorybookMutationAdapter(service),
+      submitStorybook: service.submitStorybook,
+    },
+  });
 }

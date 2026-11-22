@@ -1,7 +1,7 @@
 import { globSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
-import { PRERENDER_PATHS } from "./app/shared/site-routes";
+import { NOINDEX_PATHS, PRERENDER_PATHS } from "./app/shared/site-routes";
 
 const appDir = join(import.meta.dirname, "app");
 
@@ -10,6 +10,15 @@ const appDir = join(import.meta.dirname, "app");
 const uiDirs = globSync("features/**/ui", { cwd: appDir });
 
 const SITE_URL = process.env.NUXT_PUBLIC_SITE_URL ?? "https://bellvicksinitiative.org";
+
+/**
+ * `nuxt generate` makes a STATIC site (e.g. a cPanel upload): plain files, no server. Anything that
+ * needs our server (AI covers, Paystack checkout) must be off there, whatever .env says, or the
+ * pages call an API that doesn't exist. Overriding process.env also covers prerendering, which
+ * re-reads NUXT_PUBLIC_* from the environment.
+ */
+const STATIC_SITE = process.argv.includes("generate");
+if (STATIC_SITE) process.env.NUXT_PUBLIC_STORYBOOK_AI_COVERS = "0";
 
 /** Files still using invented demo values (shared/sample-content.ts). */
 const sampleFiles = globSync("**/*.{ts,vue}", { cwd: appDir }).filter((f) =>
@@ -76,14 +85,40 @@ export default defineNuxtConfig({
 
   site: { url: SITE_URL, name: "Bellvicks Initiative" },
   sitemap: {
-    exclude: ["/_styleguide"],
+    exclude: ["/_styleguide", ...NOINDEX_PATHS],
   },
   robots: {
-    disallow: ["/_styleguide"],
+    disallow: ["/_styleguide", ...NOINDEX_PATHS],
   },
 
   runtimeConfig: {
+    // Storybook AI covers (server only). Off until NUXT_OPENAI_API_KEY is set; see server/api/storybook.
+    openaiApiKey: "",
+    // GPT Image 2.5 "Sunburst": the model the approved Flick samples were made with.
+    openaiImageModel: "gpt-image-2.5-sunburst",
+    /** Cover sets per visitor per day, and for the whole site per day (spending guard). */
+    storybookCoversPerIp: 3,
+    storybookCoversPerDay: 60,
+    // Storybook checkout (server only): Paystack SECRET key. Off until set.
+    paystackSecretKey: "",
+    /** Paystack API address. Only changed for local testing against a stand-in server. */
+    paystackApiBase: "https://api.paystack.co",
+    // Form emails via Resend (server only). Storybook → storybookEmail; every other form →
+    // contactEmail. The sender must be on a domain verified in Resend.
+    resendApiKey: "",
+    storybookEmail: "",
+    contactEmail: "",
+    emailFrom: "Bellvicks Initiative website <website@bellvicksinitiative.org>",
     public: {
+      // Must match the server key being set (build AND runtime): it changes the photo consent text.
+      storybookAiCovers: process.env.NUXT_PUBLIC_STORYBOOK_AI_COVERS === "1",
+      /** True for `nuxt generate` builds: no server, so no online payment. */
+      staticSite: STATIC_SITE,
+      // Storybook prices in naira. -1 = not set yet (checkout shows "price coming soon").
+      // 0 delivery = free delivery. Read at build time too: rebuild after changing.
+      storybookPriceNgn: -1,
+      storybookDeliveryNigeriaNgn: -1,
+      storybookDeliveryInternationalNgn: -1,
       siteUrl: SITE_URL,
       // Set once a real 1200×630 social image exists, e.g. "/images/og/default.jpg".
       ogImage: process.env.NUXT_PUBLIC_OG_IMAGE ?? "/brand/og-image.png",

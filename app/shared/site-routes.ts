@@ -16,6 +16,9 @@ export const ROUTES = {
   causes: "/causes",
   storybook: "/create-your-storybook",
   storybookCreate: "/create-your-storybook/create",
+  cart: "/cart",
+  checkout: "/checkout",
+  checkoutComplete: "/checkout/complete",
   getInvolved: "/get-involved",
   volunteer: "/get-involved/volunteer",
   becomeMentor: "/get-involved/become-a-mentor",
@@ -52,7 +55,10 @@ export type CauseSlug = (typeof CAUSE_SLUGS)[number];
 export const causePath = (slug: CauseSlug) => `${ROUTES.causes}/${slug}`;
 export const focusAreaPath = (slug: FocusAreaSlug) => `${ROUTES.whatWeDo}/${slug}`;
 
-/** Paths prerendered at build time and listed in the sitemap. */
+/** Private pages: prerendered, but kept out of the sitemap and search engines. */
+export const NOINDEX_PATHS: string[] = [ROUTES.cart, ROUTES.checkout, ROUTES.checkoutComplete];
+
+/** Paths prerendered at build time (the sitemap lists them all except NOINDEX_PATHS). */
 export const PRERENDER_PATHS: string[] = [
   ...new Set([
     ...Object.values(ROUTES),

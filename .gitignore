@@ -17,3 +17,6 @@ logs
 .idea
 *.tsbuildinfo
 .claude/settings.local.json
+
+# cPanel upload zips (built by hand, see AGENTS.md)
+deploy/

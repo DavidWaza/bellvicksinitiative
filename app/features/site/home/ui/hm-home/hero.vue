@@ -16,13 +16,28 @@
         </NHeading>
         <p class="mt-6 max-w-xl text-lg text-base-550">{{ hero.supporting }}</p>
 
-        <div class="mt-8 flex flex-wrap items-center gap-3">
-          <NButton :to="ROUTES.donate" size="lg">
+        <div class="mt-8 flex items-center gap-2 min-[360px]:gap-2.5 sm:gap-3">
+          <NButton
+            :to="ROUTES.donate"
+            size="lg"
+            class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
+          >
             <NIcon name="heart" weight="fill" /> Send Relief
           </NButton>
-          <NButton to="#causes" size="lg" variant="ghost" color="brand">
+          <NButton
+            to="#causes"
+            size="lg"
+            variant="ghost"
+            color="brand"
+            class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
+          >
             See our causes
-            <NIcon name="play" weight="fill" size="1.5em" class="text-accent-600" />
+            <NIcon
+              name="play"
+              weight="fill"
+              size="1.5em"
+              class="hidden text-accent-600 min-[360px]:block"
+            />
           </NButton>
         </div>
 

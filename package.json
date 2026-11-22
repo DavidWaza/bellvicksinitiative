@@ -30,6 +30,7 @@
     "nano-staged": "^1.0.2",
     "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",
+    "sharp": "^0.35.5",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.14"
   },
@@ -47,7 +48,9 @@
     "luxon": "^3.7.2",
     "notivue": "^2.4.5",
     "nuxt": "^4.5.2",
+    "openai": "^7.62.0",
     "reka-ui": "^2.11.0",
+    "resend": "^6.39.0",
     "tailwind-merge": "^3.7.1",
     "tailwindcss": "^4.3.5",
     "vee-validate": "^4.15.1",

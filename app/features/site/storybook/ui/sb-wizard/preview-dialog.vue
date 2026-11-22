@@ -26,7 +26,12 @@
       <!-- Spread: cover | dedication | first page -->
       <div class="mt-6 grid gap-4 md:grid-cols-3">
         <div class="@container">
-          <sb-wizard-book-cover :book="book" :from="from" :photo-url="photoUrl" />
+          <sb-wizard-book-cover
+            :book="book"
+            :from="from"
+            :photo-url="photoUrl"
+            :loading="coverLoading"
+          />
         </div>
         <div
           class="flex aspect-square flex-col items-center justify-center rounded-xl bg-base-50 p-6 text-center shadow-soft"
@@ -58,7 +63,7 @@
           @click="emit('toggle', book.id)"
         >
           <NIcon :name="selected ? 'check' : 'cart'" />
-          {{ selected ? "Added" : "Add to my books" }}
+          {{ selected ? "In cart" : "Add to cart" }}
         </NButton>
       </div>
     </div>
@@ -75,6 +80,8 @@ const props = defineProps<{
   dedication: string;
   photoUrl: string | null;
   selected: boolean;
+  /** The AI cover is still being drawn. */
+  coverLoading?: boolean;
 }>();
 const emit = defineEmits<{ close: []; toggle: [id: string] }>();
 

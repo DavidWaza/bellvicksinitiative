@@ -1,9 +1,9 @@
 import { useNewsletterMutationAdapter } from "../adapters/newsletter-mutation-adapter";
 import useNewsletterApp from "../application/use-newsletter-app";
-import useNewsletterServiceMockAdapter from "../infrastructure/services/newsletter-service-mock-adapter";
+import useNewsletterServiceHttpAdapter from "../infrastructure/services/newsletter-service-http-adapter";
 
 /** THE SWAP POINT is the service line below. */
 export default function useNewsletter() {
-  const service = useNewsletterServiceMockAdapter(); // ← swap for useNewsletterServiceHttpAdapter()
+  const service = useNewsletterServiceHttpAdapter(); // emails via our server (server/api/forms)
   return useNewsletterApp({ deps: { mutationPort: useNewsletterMutationAdapter(service) } });
 }

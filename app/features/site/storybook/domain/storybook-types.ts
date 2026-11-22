@@ -155,7 +155,9 @@ export interface StoryBook {
   /** Cover palette. */
   tone: "sun" | "sky" | "coral" | "mint" | "lavender";
   /** Cover motif drawn behind the child. */
-  motif: "tree" | "market" | "stars" | "river";
+  motif: "tree" | "market" | "stars" | "river" | "sport" | "art" | "music" | "animals" | "confetti";
+  /** Which answers this book was built from, e.g. "Loves football", "Puff the cat". */
+  inspiredBy: string[];
   pages: number;
   /** Trim size, e.g. 8.5" × 8.5". */
   size: string;
@@ -165,10 +167,4 @@ export interface StoryBook {
   coverPrompt: string;
   /** The AI-illustrated cover, once generated. Until then the drawn stand-in cover shows. */
   coverUrl?: string;
-}
-
-/** What the customer sends when they've picked their books. */
-export interface StoryOrderRequest {
-  draft: Omit<StoryDraft, "hasPhoto">;
-  bookIds: string[];
 }

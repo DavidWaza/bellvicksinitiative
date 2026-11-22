@@ -1,0 +1,52 @@
+# Apache settings for the STATIC build on cPanel (`npm run generate` → upload .output/public).
+# Copied into every build from public/.htaccess. Not used by the Node.js app setup.
+
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Always HTTPS (needs an SSL certificate: cPanel → SSL/TLS Status → Run AutoSSL).
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Old address of the storybook section (Nuxt does this itself only when running as a Node app).
+  RewriteRule ^childrens-books/?$ /create-your-storybook [L,R=301]
+</IfModule>
+
+# Resized images keep the original ".jpg" name but are often AVIF or WebP (the format is in the
+# folder name, e.g. /_ipx/w_544&f_avif&fit_cover/...). Label them with their real type.
+<If "%{REQUEST_URI} =~ m#^/_ipx/[^/]*f_avif#">
+  ForceType image/avif
+</If>
+<If "%{REQUEST_URI} =~ m#^/_ipx/[^/]*f_webp#">
+  ForceType image/webp
+</If>
+<If "%{REQUEST_URI} =~ m#^/_ipx/[^/]*f_png#">
+  ForceType image/png
+</If>
+AddType image/avif .avif
+AddType image/webp .webp
+
+# Unknown paths show the site's own "page not found" page.
+ErrorDocument 404 /404.html
+
+# Compress text files.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache: hashed build files forever, images and fonts for a month, pages always fresh.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(jpg|jpeg|png|webp|avif|svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

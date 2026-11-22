@@ -28,15 +28,24 @@
             brand-new adventures starring them. Pick the ones you love and we'll print them as
             keepsake books.
           </p>
-          <div class="mt-8 flex flex-wrap gap-3">
-            <NButton :to="ROUTES.storybookCreate" color="coral" size="lg">
+          <div class="mt-8 flex items-center gap-2 min-[360px]:gap-2.5 sm:gap-3">
+            <NButton
+              :to="ROUTES.storybookCreate"
+              color="coral"
+              size="lg"
+              class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
+            >
               <NIcon name="book" weight="duotone" /> Start creating
             </NButton>
-            <NButton to="#how-it-works" color="coral" variant="ghost" size="lg"
+            <NButton
+              to="#how-it-works"
+              color="coral"
+              variant="ghost"
+              size="lg"
+              class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
               >How it works</NButton
             >
           </div>
-          <p class="mt-4 text-sm text-base-550">Takes about 3 minutes. Ages 1 to 12.</p>
         </div>
         <div class="relative mx-auto w-full max-w-md pt-10">
           <NDoodleHeart class="absolute -top-2 right-2 z-30 w-11 text-coral-500" />

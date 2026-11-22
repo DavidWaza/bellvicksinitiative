@@ -8,18 +8,32 @@ import {
   type StoryBook,
   type StoryDraft,
 } from "../domain/storybook-types";
-import type { GenerateInput, StorybookMutationPort } from "../ports/storybook.port";
+import type {
+  GenerateInput,
+  StorybookMutationPort,
+  StorybookServicePort,
+} from "../ports/storybook.port";
 
 /**
- * The storybook wizard use case: step machine, draft, generated books and the customer's pick.
- * Framework-agnostic (no router, no DOM). The photo itself is a UI concern and never leaves the
- * device in this version; the draft only records that one was chosen.
+ * The storybook wizard use case: step machine, draft, generated books, AI covers and the pick.
+ * Framework-agnostic (no router, no DOM). The photo is held as a Blob and only leaves the device
+ * when AI covers are switched on (then it goes to our server to draw the covers, nowhere else).
  */
+type CoverState = "idle" | "working" | "done" | "failed";
 export default function useStorybookApp(options: {
-  deps: { mutationPort: StorybookMutationPort };
+  deps: {
+    mutationPort: StorybookMutationPort;
+    /** Emails the questionnaire + photo to the storybook team (fire and forget). */
+    submitStorybook: StorybookServicePort["submitStorybook"];
+  };
 }) {
   const generateMutation = options.deps.mutationPort.useGenerateMutation();
-  const orderMutation = options.deps.mutationPort.useOrderMutation();
+  const illustrateMutation = options.deps.mutationPort.useIllustrateMutation();
+
+  /** The child's photo (set by the photo step). */
+  const photo = ref<Blob | null>(null);
+  const coverState = ref<CoverState>("idle");
+  const coverMessage = ref("");
 
   const draft = reactive<StoryDraft>(emptyDraft());
   const stepIndex = ref(0);
@@ -31,7 +45,6 @@ export default function useStorybookApp(options: {
 
   const books = ref<StoryBook[]>([]);
   const selected = ref<string[]>([]);
-  const orderReference = ref<string | null>(null);
 
   /** What leaves the browser: everything except the photo flag. */
   const payload = (): GenerateInput => ({
@@ -56,8 +69,44 @@ export default function useStorybookApp(options: {
   /** Advances one step. On the email step this writes the books first. */
   async function next() {
     if (!canContinue.value) return;
-    if (step.value === "email") await generate();
+    if (step.value === "email") {
+      await generate();
+      goTo(stepIndex.value + 1);
+      void illustrate(); // covers arrive while the customer reads the stories
+      // The storybook team gets the details + photo. Never blocks or bothers the parent.
+      void options.deps.submitStorybook(payload(), photo.value).catch(() => undefined);
+      return;
+    }
     goTo(stepIndex.value + 1);
+  }
+
+  /** Draws the AI covers from the photo and slots each one into its book. Never throws. */
+  async function illustrate() {
+    if (!photo.value || !books.value.length) return;
+    coverState.value = "working";
+    coverMessage.value = "";
+    try {
+      const res = await illustrateMutation.mutateAsync({ input: payload(), photo: photo.value });
+      if (!res.status) {
+        coverState.value = "failed";
+        coverMessage.value = res.message ?? "";
+        return;
+      }
+      const covers = res.data ?? [];
+      if (!covers.length) {
+        coverState.value = "idle"; // AI covers are switched off: the drawn covers stay
+        return;
+      }
+      books.value = books.value.map((b) => ({
+        ...b,
+        coverUrl: covers.find((c) => c.id === b.id)?.coverUrl ?? b.coverUrl,
+      }));
+      coverState.value = "done";
+    } catch {
+      coverState.value = "failed";
+      coverMessage.value =
+        "We couldn't illustrate the covers just now. Your drawn covers are ready.";
+    }
   }
 
   const back = () => goTo(stepIndex.value - 1);
@@ -76,21 +125,13 @@ export default function useStorybookApp(options: {
       : [...selected.value, id];
   }
 
-  async function requestOrder() {
-    if (!selected.value.length) return;
-    const res = await orderMutation.mutateAsync({ draft: payload(), bookIds: selected.value });
-    const data = unwrapApiResponse(
-      res,
-      "We couldn't send your request just now. Please try again.",
-    ).data;
-    orderReference.value = data?.reference ?? null;
-  }
-
   function restart() {
     Object.assign(draft, emptyDraft());
     books.value = [];
     selected.value = [];
-    orderReference.value = null;
+    photo.value = null;
+    coverState.value = "idle";
+    coverMessage.value = "";
     goTo(0);
   }
 
@@ -105,10 +146,11 @@ export default function useStorybookApp(options: {
     books,
     selected,
     toggleBook,
-    requestOrder,
-    orderReference,
     restart,
+    photo,
+    coverState,
+    coverMessage,
+    retryCovers: illustrate,
     isGenerating: generateMutation.isPending,
-    isOrdering: orderMutation.isPending,
   };
 }

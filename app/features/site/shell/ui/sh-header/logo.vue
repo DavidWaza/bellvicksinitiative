@@ -32,6 +32,8 @@
         cn(
           'font-display text-[1.4rem] leading-none font-semibold tracking-tight sm:text-[1.65rem]',
           light ? 'text-base-50' : 'text-forest-900',
+          // Below 360px the header only has room for the mark (the link keeps its aria-label).
+          !light && 'max-[359px]:hidden',
         )
       "
     >

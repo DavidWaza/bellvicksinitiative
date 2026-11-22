@@ -4,6 +4,7 @@ import type { StorybookMutationPort, StorybookServicePort } from "../ports/story
 export function useStorybookMutationAdapter(service: StorybookServicePort): StorybookMutationPort {
   return {
     useGenerateMutation: () => useMutation({ mutationFn: (input) => service.generateBooks(input) }),
-    useOrderMutation: () => useMutation({ mutationFn: (input) => service.requestOrder(input) }),
+    useIllustrateMutation: () =>
+      useMutation({ mutationFn: ({ input, photo }) => service.illustrateCovers(input, photo) }),
   };
 }

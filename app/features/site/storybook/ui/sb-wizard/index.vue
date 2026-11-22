@@ -37,35 +37,6 @@
         <!-- Writing the books -->
         <sb-wizard-writing v-if="isGenerating" :name="draft.name" />
 
-        <!-- Order request sent -->
-        <div
-          v-else-if="orderReference"
-          role="status"
-          class="mx-auto flex max-w-lg flex-col items-center py-10 text-center"
-        >
-          <NIconBlob icon="send" tone="mint" class="size-20" />
-          <h1
-            id="step-title"
-            ref="headingEl"
-            tabindex="-1"
-            class="font-display mt-6 text-3xl font-semibold text-forest-900 outline-none"
-          >
-            Request received
-          </h1>
-          <p class="mt-3 text-base-600">
-            Thank you! We'll email <strong class="text-base-900">{{ draft.email }}</strong> with the
-            price and delivery details for
-            {{ selectedBooks.length === 1 ? "your book" : "your books" }}. Nothing has been charged.
-          </p>
-          <p class="mt-2 text-sm text-base-550">Reference: {{ orderReference }}</p>
-          <ul role="list" class="mt-6 flex flex-col gap-1 font-bold text-forest-900">
-            <li v-for="book in selectedBooks" :key="book.id">{{ book.title }}</li>
-          </ul>
-          <NButton class="mt-8" variant="ghost" color="brand" @click="startOver"
-            >Create another storybook</NButton
-          >
-        </div>
-
         <template v-else>
           <header :class="step === 'pick' && 'text-center'">
             <h1
@@ -129,6 +100,7 @@
             <div v-else-if="step === 'photo'" class="flex flex-col gap-8">
               <sb-wizard-photo-picker
                 v-model:photo-url="photoUrl"
+                v-model:photo-file="photo"
                 v-model:consent="draft.guardianConsent"
                 :name="draft.name"
               />
@@ -210,7 +182,10 @@
               :from="draft.from"
               :dedication="draft.dedication"
               :photo-url="photoUrl"
-              @toggle="toggleBook"
+              :cover-state="coverState"
+              :cover-message="coverMessage"
+              @toggle="onToggle"
+              @retry-covers="retryCovers"
             />
 
             <!-- Primary action -->
@@ -246,27 +221,20 @@
               <p class="font-bold" aria-live="polite">
                 {{
                   selected.length
-                    ? `${selected.length} ${selected.length === 1 ? "book" : "books"} selected`
-                    : "Pick one or more books"
+                    ? `${selected.length} ${selected.length === 1 ? "book" : "books"} added to your cart`
+                    : "Add one or more books to your cart"
                 }}
               </p>
-              <NButton
-                type="button"
-                color="coral"
-                :disabled="!selected.length || isOrdering"
-                @click="onOrder"
-              >
-                <NIcon
-                  :name="isOrdering ? 'spinner' : 'cart'"
-                  :class="isOrdering && 'animate-spin'"
-                />
-                {{ isOrdering ? "Sending…" : "Request my books" }}
+              <NButton v-if="selected.length || cart.count.value" :to="ROUTES.cart" color="coral">
+                <NIcon name="cart" />
+                Go to cart & checkout
               </NButton>
             </div>
           </form>
 
           <p v-if="step === 'pick'" class="mt-6 text-center text-sm text-base-550">
-            No payment is taken here: we'll email you the price and delivery details to confirm.
+            Review your books in the cart, then pay securely with Paystack (cards, bank transfer and
+            USSD).
           </p>
         </template>
       </div>
@@ -276,6 +244,7 @@
 
 <script setup lang="ts">
 import { ROUTES } from "~/shared/site-routes";
+import { downscaleToJpeg } from "~/utils/downscale-image";
 import {
   AGE_MAX,
   AGE_MIN,
@@ -301,17 +270,73 @@ const {
   books,
   selected,
   toggleBook,
-  requestOrder,
-  orderReference,
-  restart,
+  photo,
+  coverState,
+  coverMessage,
+  retryCovers,
   isGenerating,
-  isOrdering,
 } = useStorybook();
+
+const cart = useCart();
+/** Which cart line each picked book became, so "Added" can be undone from here. */
+const cartKeys: Record<string, string> = {};
+
+/** The child's photo, shrunk once per storybook so the cart can keep it and send it with the order. */
+let smallPhotoFor: Blob | null = null;
+let smallPhotoPromise: Promise<string | null> = Promise.resolve(null);
+function smallPhoto(): Promise<string | null> {
+  if (!photo.value) return Promise.resolve(null);
+  if (smallPhotoFor !== photo.value) {
+    smallPhotoFor = photo.value;
+    smallPhotoPromise = downscaleToJpeg(photo.value);
+  }
+  return smallPhotoPromise;
+}
+
+function onToggle(bookId: string) {
+  const book = books.value.find((b) => b.id === bookId);
+  if (!book) return;
+  const existing = cartKeys[bookId];
+  if (existing) {
+    cart.remove(existing);
+    delete cartKeys[bookId];
+  } else {
+    const key = cart.add({
+      bookId: book.id,
+      title: book.title,
+      blurb: book.blurb,
+      tone: book.tone,
+      motif: book.motif,
+      inspiredBy: book.inspiredBy,
+      coverUrl: book.coverUrl,
+      child: {
+        name: draft.name.trim(),
+        gender: draft.gender,
+        age: draft.age,
+        eyeColour: draft.eyeColour,
+        answers: { ...draft.answers },
+        from: draft.from.trim(),
+        dedication: draft.dedication,
+      },
+    });
+    cartKeys[bookId] = key;
+    void smallPhoto().then((p) => cart.setPhoto(key, p));
+  }
+  toggleBook(bookId);
+}
+
+// AI covers can arrive after a book is already in the cart: give that cart line the new cover.
+watch(books, (list) => {
+  for (const b of list) {
+    const key = cartKeys[b.id];
+    if (key && b.coverUrl) cart.setCover(key, b.coverUrl);
+  }
+});
 
 const PILL =
   "flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-base-500 bg-base-0 px-4 text-sm font-bold text-base-600 transition-colors hover:border-coral-500 peer-checked:border-coral-600 peer-checked:bg-coral-50 peer-checked:text-coral-700 peer-focus-visible:shadow-[0_0_0_2px_var(--base-50),0_0_0_5px_var(--accent-600)]";
 
-/** Object URL of the chosen photo. Stays in the browser. */
+/** Object URL of the chosen photo, for previews (the Blob itself lives in the app as `photo`). */
 const photoUrl = ref<string | null>(null);
 watch(photoUrl, (url) => (draft.hasPhoto = Boolean(url)));
 
@@ -351,10 +376,8 @@ const copy = computed(() => {
   return map[step.value];
 });
 
-const selectedBooks = computed(() => books.value.filter((b) => selected.value.includes(b.id)));
-
 const headingEl = ref<HTMLElement | null>(null);
-watch([step, orderReference], async () => {
+watch(step, async () => {
   await nextTick();
   headingEl.value?.focus();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -369,23 +392,6 @@ async function onContinue() {
       message: error instanceof Error ? error.message : "Please try again.",
     });
   }
-}
-
-async function onOrder() {
-  try {
-    await requestOrder();
-  } catch (error) {
-    push.error({
-      title: "Couldn't send your request",
-      message: error instanceof Error ? error.message : "Please try again.",
-    });
-  }
-}
-
-function startOver() {
-  if (photoUrl.value) URL.revokeObjectURL(photoUrl.value);
-  photoUrl.value = null;
-  restart();
 }
 
 onBeforeUnmount(() => {

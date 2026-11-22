@@ -20,10 +20,18 @@
         <strong>Donation pledges:</strong> your name, email, the cause, amount, currency and
         frequency you choose.
       </li>
+      <li>
+        <strong>Storybook orders:</strong> your name, email, phone and delivery address, and the
+        details of each book (the child's first name, age, the answers you gave, the "from" name and
+        dedication).
+      </li>
     </ul>
     <p>
-      <strong>We do not take payments on this website</strong>, and we never ask for card or bank
-      details through it. We do not use analytics or advertising cookies.
+      <strong>Storybook payments are handled by Paystack.</strong> You pay on Paystack's secure
+      page; we never see or store your card or bank details. Paystack also receives your order
+      details so we can process and deliver it. Donations are pledges only: we don't take donation
+      payments on this website. Your cart is kept in your own browser until you check out. We do not
+      use analytics or advertising cookies.
     </p>
 
     <h2>Why we use it</h2>
@@ -59,6 +67,24 @@
       <NuxtLink :to="ROUTES.credits">photo credits</NuxtLink>.
     </p>
 
+    <h2>Storybook photos</h2>
+    <p v-if="hasServer">
+      When you create a storybook, a parent or guardian must agree before a child's photo is used.
+      Your answers and the photo are emailed to the Bellvicks storybook team, only so we can
+      illustrate and print that child's books.
+      <template v-if="aiCovers">
+        The photo is also sent securely to our illustration service, OpenAI, to draw the book
+        covers.
+      </template>
+      We don't publish the photo or use it for anything else, and you can ask us to delete it at any
+      time.
+    </p>
+    <p v-else>
+      When you create a storybook, a parent or guardian must agree before a child's photo is used.
+      The photo stays on your own device while you preview your books; we only receive it if you
+      place an order, and use it only to illustrate those books.
+    </p>
+
     <h2>Your rights</h2>
     <p>
       You can ask to see, correct or delete the information we hold about you, or withdraw your
@@ -75,6 +101,9 @@
 <script setup lang="ts">
 import { SITE_INFO } from "~/shared/site-info";
 import { ROUTES } from "~/shared/site-routes";
+
+const aiCovers = useAiCovers();
+const hasServer = !useRuntimeConfig().public.staticSite;
 
 const address = `${SITE_INFO.address.street}, ${SITE_INFO.address.locality}, ${SITE_INFO.address.country}`;
 

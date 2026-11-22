@@ -32,11 +32,22 @@
           </li>
         </ul>
 
-        <div v-reveal="4" class="mt-8 flex flex-wrap items-center gap-3">
-          <NButton :to="ROUTES.storybookCreate" color="coral" size="lg">
-            <NIcon name="book" weight="duotone" /> Create your storybook
+        <div v-reveal="4" class="mt-8 flex items-center gap-2 min-[360px]:gap-2.5 sm:gap-3">
+          <NButton
+            :to="ROUTES.storybookCreate"
+            color="coral"
+            size="lg"
+            class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
+          >
+            <NIcon name="book" weight="duotone" /> Start creating
           </NButton>
-          <NButton :to="ROUTES.storybook" color="coral" variant="ghost" size="lg">
+          <NButton
+            :to="ROUTES.storybook"
+            color="coral"
+            variant="ghost"
+            size="lg"
+            class="h-12 px-3 text-sm min-[360px]:px-4 min-[360px]:text-[0.9375rem] sm:h-14 sm:px-8 sm:text-lg"
+          >
             How it works
           </NButton>
         </div>

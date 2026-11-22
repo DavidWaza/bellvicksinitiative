@@ -15,6 +15,7 @@ npm run knip         # unused files / exports / deps
 npm run build        # production build + prerender (~30s here)
 npm run build:launch # same, but FAILS while invented sample content remains (run before going live)
 node .output/server/index.mjs   # serve the production build (PORT=6301 to pick a port)
+npm run generate && (cd .output/public && C:/Windows/System32/tar.exe -a -c -f ../../deploy/bellvicks-site.zip --exclude "*.br" --exclude "*.gz" .htaccess *)   # static cPanel zip → deploy/ (a build empties .output, so never keep the zip there)
 node scripts/contrast-report.mjs   # regenerate docs/design/contrast.md
 node scripts/generate-dot-map.mjs  # regenerate the dotted world-map path
 node scripts/generate-icons.mjs    # regenerate app/utils/icon-paths.ts after adding an icon
@@ -73,6 +74,39 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
   them all. `npm run build` prints a loud warning listing them (the `ready` hook in `nuxt.config.ts`);
   **`npm run build:launch` fails while any remain**, so run it before going live. The CAC number is never sampled.
 
+- **`nuxt generate` (static / cPanel upload) switches server features off by itself.** It sets
+  `public.staticSite`; `useAiCovers()` and checkout read it, so AI covers stay drawn and checkout
+  says "contact us" there even when `.env` turns them on (prerendering re-reads `.env`, so the
+  flag alone isn't enough). Real covers and payments need the Node build.
+- **Form emails (Resend).** Every form posts to our server, which emails it (`server/utils/email.ts`):
+  storybook questionnaires (with the photo attached, `server/api/storybook/submission.post.ts`)
+  and paid orders (`checkout/verify.get.ts`, once per reference) → `NUXT_STORYBOOK_EMAIL`;
+  contact, volunteer, mentor, partner, pledge, newsletter and the homepage sign-up
+  (`server/api/forms/[form].post.ts`, validated with the same yup schemas) →
+  `NUXT_CONTACT_EMAIL`. Reply-To is the visitor. Browser side: `shared/form-post.ts`, which never
+  pretends: with no server (static upload) it fails with "please email us at …". **The built server
+  does not read `.env`**: set these in the host's environment.
+- **`deploy/bellvicks-node-prebuilt.zip`** is the built Node app for hosts that can't build (cPanel hit its
+  memory limits): `.output/` + `app.cjs` + a dependency-free `package.json` + `DEPLOY.txt`. A Windows
+  build only bundles Windows `sharp` binaries, so `@img/sharp-linux-x64` and
+  `@img/sharp-libvips-linux-x64` (versions from sharp's optionalDependencies) are unpacked into
+  `.output/server/node_modules/@img/` before zipping. Always scan `.output` for the real key values first.
+- **Paid storybook orders email the storybook inbox ONCE, complete** (`server/utils/storybook-order.ts`):
+  totals, delivery, and per book the child's form details (gender, eyes, from, dedication, every
+  answer, "inspired by") with each child's photo attached. The cart keeps a shrunk photo per book
+  (`utils/downscale-image.ts`, ~100 KB); checkout hands the photos to `holdOrderPhotos` (memory, 24h)
+  because Paystack metadata can't carry images. Sent by whichever comes first: `/checkout/complete`
+  (verify) or the **Paystack webhook** `/api/paystack/webhook` (HMAC-SHA512 signature checked;
+  covers customers who close the tab). Both send in the background (`event.waitUntil`).
+  `NUXT_PAYSTACK_API_BASE` exists only to test against a local stand-in Paystack.
+- **Never read `window.location.search` on a prerendered page's first mount.** While it hydrates,
+  the router briefly replaces the address without its query string. `/checkout/complete` read it
+  then, found no `?reference`, and no payment could ever be confirmed. Use `useRoute().query`.
+- **AI covers and storybook payments need a Node server.** Every page is prerendered, but
+  `/api/storybook/covers` and `/api/storybook/checkout` run on the Nitro server (a static-only
+  upload shows the cart but can't take payment), so deploy `.output/` as a Node app (or a host with serverless functions),
+  not as static files only.
+
 ## Things that surprised us (read before changing them)
 
 - **`--color-*: initial`.** Stock Tailwind colours render nothing, with no warning. Only the ramps
@@ -127,8 +161,7 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
   licence: `public/fonts/FRAUNCES-OFL.txt`.
 - **npm needs `legacy-peer-deps`** (`.npmrc`): `@tanstack/vue-query` declares an optional peer on
   the Vue 2 composition-api shim.
-- `status: false` arrives on HTTP 200. Every write goes through `unwrapApiResponse`. The mock
-  newsletter answers a duplicate address that way, so the failure path can be seen.
+- `status: false` arrives on HTTP 200. Every write goes through `unwrapApiResponse`.
 
 - **`@nuxt/image` `sizes` syntax is not CSS.** Write `"xs:92vw sm:92vw md:45vw lg:560px"`. CSS
   media-query syntax, or an unprefixed `92vw`, resolves against a 1px screen and ships 1px images.
@@ -152,7 +185,7 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
 | `features/site/about` | `ab-` | `/about`. Static domain content; team and CAC number are `TODO_CONTENT` (team hidden in production). |
 | `features/site/programmes` | `pr-` | `/what-we-do` and the six `/what-we-do/<slug>` pages. Static domain content. |
 | `features/site/causes` | `cs-` | `/causes` (location filter) and `/causes/<slug>`. Full ports/adapters/mock; funding numbers are `TODO_CONTENT`. |
-| `features/site/storybook` | `sb-` | `/create-your-storybook` (landing) and `/create-your-storybook/create` (8-step wizard: name, basics, questions, photo + eye colour, from, dedication, email, pick books). Mock service writes 3 template stories (`infrastructure/mock/story-templates.ts`). The photo stays in the browser (object URL) and needs a guardian-consent tick. The last step is an order REQUEST, never a payment. `/childrens-books` 301s here. Each book carries a `coverPrompt` (`infrastructure/mock/cover-prompts.ts`, matching the approved Flick samples); when the real service returns `coverUrl`, the AI cover replaces the drawn stand-in. Sample covers on the landing/home: `shared/storybook-samples.ts` + `NCoverStack` (masters in `brand/storybook/`). |
+| `features/site/storybook` | `sb-` | `/create-your-storybook` (landing) and `/create-your-storybook/create` (8-step wizard: name, basics, questions, photo + eye colour, from, dedication, email, pick books). **The 3 books follow the questionnaire answers, never a fixed or random set:** `story-themes.ts` is the theme library (each theme says when it fits and how it uses the answers), `story-templates.ts` scores them and gives every answered question (activity, pet, food, place, funny habit) a book before any answer gets a second one; siblings and pets join as sidekicks, and each book lists what it was `inspiredBy`. Classic stories (and a bedtime story for ages 1–3) only fill gaps. The photo stays in the browser (object URL) and needs a guardian-consent tick. The pick step adds books to a **cart** (`composition/use-cart.ts`: useState + localStorage, loaded after mount; its saver runs in a detached effect scope so it outlives the page). `/cart` → `/checkout` → **Paystack** (redirect to Paystack's hosted page) → `/checkout/complete`, which verifies the payment on our server (`server/api/storybook/checkout.post.ts`, `checkout/verify.get.ts`). The server recomputes every total from the price settings (`NUXT_PUBLIC_STORYBOOK_PRICE_NGN`, delivery fees for Nigeria / abroad; unset = "price coming soon", no charging) and sends the full order as Paystack metadata, so orders are visible in the Paystack dashboard without a database. Cart, checkout and complete are noindex and out of the sitemap. `/childrens-books` 301s here. Each book carries a `coverPrompt` (`infrastructure/mock/cover-prompts.ts`, matching the approved Flick samples); when the real service returns `coverUrl`, the AI cover replaces the drawn stand-in. Sample covers on the landing/home: `shared/storybook-samples.ts` + `NCoverStack` (masters in `brand/storybook/`). **AI covers** (real, not mock): `server/api/storybook/covers.post.ts` re-writes the stories server-side and draws each cover with OpenAI `gpt-image-2.5-sunburst` from the child's photo; off until `NUXT_OPENAI_API_KEY` + `NUXT_PUBLIC_STORYBOOK_AI_COVERS=1` are set (see `.env.example`). The consent text and privacy policy switch with that flag. Daily per-IP and site-wide limits guard spending (in-memory: one server process). Flick has no public API, which is why the server calls OpenAI directly. |
 | `features/site/involved` | `gi-` | `/get-involved` hub plus volunteer, mentor and partner forms (yup schemas live in the domain). |
 | `features/site/news` | `nw-` | `/news` and `/news/stories`. Production shows an empty state until a post is publishable. |
 | `features/site/contact` | `ct-` | `/contact`: details plus a message form. |

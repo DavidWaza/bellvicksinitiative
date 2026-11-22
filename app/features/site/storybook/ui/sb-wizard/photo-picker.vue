@@ -40,7 +40,7 @@
         <input
           id="sb-photo"
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic"
+          accept="image/jpeg,image/png,image/webp"
           class="sr-only"
           aria-describedby="sb-photo-hint"
           @change="onFile"
@@ -78,19 +78,42 @@
       />
       <span class="text-sm text-base-600">
         <strong class="text-base-900">I'm {{ name || "this child" }}'s parent or guardian</strong>
-        and I agree to this photo being used only to illustrate this book. It stays on this device
-        until you place an order.
+        <template v-if="aiCovers">
+          and I agree to this photo being used only to make {{ name || "their" }}'s books. It's sent
+          securely to our illustration service (OpenAI) to draw the covers, and to the Bellvicks
+          storybook team to illustrate and print the books.
+          <NuxtLink :to="ROUTES.privacy" class="underline underline-offset-2"
+            >Privacy policy</NuxtLink
+          >
+        </template>
+        <template v-else-if="hasServer">
+          and I agree to this photo being sent to the Bellvicks storybook team, only to illustrate
+          and print {{ name || "their" }}'s books.
+          <NuxtLink :to="ROUTES.privacy" class="underline underline-offset-2"
+            >Privacy policy</NuxtLink
+          >
+        </template>
+        <template v-else>
+          and I agree to this photo being used only to illustrate this book. It stays on this device
+          until you place an order.
+        </template>
       </span>
     </label>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ROUTES } from "~/shared/site-routes";
 import type { IconName } from "~/utils/icons";
 
 /** Photo for the character. Held as an object URL in the browser; never uploaded in this version. */
 defineProps<{ name: string }>();
 const photoUrl = defineModel<string | null>("photoUrl", { required: true });
+/** The file itself, for illustrating the covers. */
+const photoFile = defineModel<Blob | null>("photoFile", { required: true });
+const aiCovers = useAiCovers();
+/** A server receives the submission (not on a static upload). */
+const hasServer = !useRuntimeConfig().public.staticSite;
 const consent = defineModel<boolean>("consent", { required: true });
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -118,11 +141,13 @@ function onFile(event: Event) {
   }
   if (photoUrl.value) URL.revokeObjectURL(photoUrl.value);
   photoUrl.value = URL.createObjectURL(file);
+  photoFile.value = file;
 }
 
 function clear() {
   if (photoUrl.value) URL.revokeObjectURL(photoUrl.value);
   photoUrl.value = null;
+  photoFile.value = null;
   nextTick(() => document.getElementById("sb-photo")?.focus());
 }
 </script>

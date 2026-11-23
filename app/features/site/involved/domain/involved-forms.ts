@@ -27,7 +27,7 @@ export const INVOLVEMENT_WAYS: InvolvementWay[] = [
     href: ROUTES.volunteer,
     icon: "volunteer",
     tone: "coral",
-    blurb: "Give your time and skills to our programmes and events in Abuja and beyond.",
+    blurb: "Give your time and skills to our programmes and events in Nigeria and beyond.",
     expect: [
       "Join our volunteer network and hear about opportunities first",
       "Help at book drives, food and water distributions and events",
@@ -53,11 +53,10 @@ export const INVOLVEMENT_WAYS: InvolvementWay[] = [
     href: ROUTES.partner,
     icon: "partner",
     tone: "sun",
-    blurb: "Organisations and businesses: help us reach more communities, together.",
+    blurb: "Organisations, individuals and agencies: help us reach more communities, together.",
     expect: [
       "Fund or co-deliver a cause",
-      "Give in kind: books, supplies, venues or expertise",
-      "Join partners such as Auto Credit, Ville Infinity Homes, Alliance Hospital Abuja and Birthright Properties",
+      "Give in kind: goods, services, time or expertise, whatever you can offer",
     ],
   },
 ];
@@ -72,9 +71,56 @@ export const AVAILABILITY_OPTIONS = [
   { value: "flexible", label: "Flexible" },
 ];
 
+/** The two ways to volunteer (Bellvicks' own split): hands-on help, or teaching others. */
+export const VOLUNTEER_ROLES: {
+  value: string;
+  label: string;
+  description: string;
+  icon: IconName;
+  tone: Tone;
+}[] = [
+  {
+    value: "hands-on",
+    label: "Lend a hand",
+    description: "Be there in person at book drives, food and water distributions and events.",
+    icon: "volunteer",
+    tone: "coral",
+  },
+  {
+    value: "teach",
+    label: "Teach and inspire",
+    description: "Share what you know with children and young people, and help shape their future.",
+    icon: "education",
+    tone: "sky",
+  },
+];
+
+/** Who is partnering. Organisations and agencies give their name; individuals their title. */
+export const PARTNER_KINDS = [
+  { value: "organisation", label: "Organisation" },
+  { value: "individual", label: "Individual" },
+  { value: "agency", label: "Agency" },
+];
+
+/** How an individual partner is addressed. */
+export const PERSON_TITLES = [
+  "Mr",
+  "Mrs",
+  "Ms",
+  "Miss",
+  "Dr",
+  "Prof",
+  "Chief",
+  "Engr",
+  "Barr",
+  "Rev",
+  "Alhaji",
+  "Hajia",
+].map((t) => ({ value: t, label: t }));
+
 export const PARTNERSHIP_TYPES = [
   { value: "funding", label: "Funding a cause" },
-  { value: "in-kind", label: "In-kind support" },
+  { value: "in-kind", label: "A kind support" },
   { value: "programme", label: "Co-delivering a programme" },
   { value: "other", label: "Something else" },
 ];
@@ -99,8 +145,17 @@ export const volunteerSchema = yup.object({
   email,
   phone,
   location: yup.string().trim().default(""),
+  role: yup
+    .string()
+    .oneOf(
+      VOLUNTEER_ROLES.map((r) => r.value),
+      "Choose how you'd like to volunteer.",
+    )
+    .required("Choose how you'd like to volunteer."),
   availability: yup.string().required("Choose when you're available."),
   skills: yup.string().trim().max(1000).default(""),
+  /** Also add them to the newsletter (an opt-in tick box, off by default). */
+  newsletter: yup.boolean().default(false),
 });
 
 export const mentorSchema = yup.object({
@@ -117,7 +172,30 @@ export const mentorSchema = yup.object({
 });
 
 export const partnerSchema = yup.object({
-  organisation: yup.string().trim().required("Please enter your organisation's name."),
+  partnerKind: yup
+    .string()
+    .oneOf(
+      PARTNER_KINDS.map((k) => k.value),
+      "Choose who is partnering with us.",
+    )
+    .required("Choose who is partnering with us."),
+  /** Individuals: Mr, Mrs, Dr… */
+  title: yup
+    .string()
+    .default("")
+    .when("partnerKind", ([kind], s) =>
+      kind === "individual" ? s.required("Choose your title.") : s,
+    ),
+  /** Organisations and agencies: their name. */
+  organisation: yup
+    .string()
+    .trim()
+    .default("")
+    .when("partnerKind", ([kind], s) =>
+      kind === "individual" ? s : s.required("Please enter the name."),
+    ),
+  /** Organisations and agencies: the contact's role there. */
+  jobTitle: yup.string().trim().max(120).default(""),
   name,
   email,
   phone,

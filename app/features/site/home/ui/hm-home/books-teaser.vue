@@ -15,6 +15,7 @@
           is the hero.
         </NHeading>
         <p v-reveal="2" class="mt-5 max-w-lg text-base-600">{{ teaser.copy }}</p>
+        <NGiveBack v-reveal="2" class="mt-5" />
 
         <!-- Quick facts -->
         <ul

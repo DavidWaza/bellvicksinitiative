@@ -3,7 +3,7 @@ export const SITE_INFO = {
   name: "Bellvicks Initiative",
   legalName: "Bellvicks Global Aid Initiative",
   abbreviation: "BGAI",
-  foundedYear: 2018,
+  foundedYear: 2014,
   tagline: "The future we want to see in Africa.",
   address: {
     street: "19 Ali Baba Crescent, Jabi",

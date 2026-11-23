@@ -98,6 +98,7 @@
                 <dd>Calculated at checkout</dd>
               </div>
             </dl>
+            <NGiveBack class="mt-5" />
             <NButton
               :to="priced ? ROUTES.checkout : undefined"
               :disabled="!priced"

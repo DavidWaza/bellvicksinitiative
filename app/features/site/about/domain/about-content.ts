@@ -15,7 +15,7 @@ export const ABOUT = {
   vision:
     "A world where every child and vulnerable person has access to education, opportunity and the resources they need to thrive.",
   story: [
-    "Bellvicks Global Aid Initiative (BGAI) has worked with communities across Nigeria since 2018. From our base in Abuja, we support disadvantaged children, youth and vulnerable communities with education, health, skills, clean water and mentorship.",
+    "Bellvicks Global Aid Initiative (BGAI) has worked with communities across Nigeria since 2014. From our base in Abuja, we support disadvantaged children, youth and vulnerable communities with education, health, skills, clean water and mentorship.",
     "We believe lasting change is built with communities, not for them. That's why we work alongside local communities and partners, and why our programmes aim for resilience and self-reliance rather than dependence.",
   ],
   heroImage: photo("/images/about/hero.jpg", "girlReadingToClass", "Children learning together"),

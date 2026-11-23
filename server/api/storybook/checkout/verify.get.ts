@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   // Send the order email in the background: attaching photos can take ~20s, and the customer
   // shouldn't wait on "Confirming your payment…" for it.
-  event.waitUntil(emailPaidOrder(tx));
+  event.waitUntil(handlePaidOrder(tx)); // team order email + the customer's receipt
 
   const paid: PaidOrder = {
     reference: tx.reference,

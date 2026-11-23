@@ -9,7 +9,7 @@
       <li
         v-for="item in NAV_ITEMS"
         :key="item.id"
-        class="relative"
+        :class="cn('relative', item.id === 'home' && 'hidden 2xl:block')"
         @pointerenter="item.children && onPointerEnter($event, item.id)"
         @pointerleave="item.children && onPointerLeave($event)"
         @focusout="onFocusOut($event, item.id)"
@@ -111,7 +111,7 @@ import { NAV_ITEMS, type NavItem } from "../../domain/site-nav";
 const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 
 const LINK =
-  "relative inline-flex h-11 items-center gap-1 rounded-full px-2.5 text-[0.9375rem] font-medium whitespace-nowrap text-base-900 transition-colors hover:text-forest-500 xl:px-3";
+  "relative inline-flex h-11 items-center gap-1 rounded-full px-2 text-[0.875rem] font-medium whitespace-nowrap text-base-900 transition-colors hover:text-forest-500 2xl:px-3 2xl:text-[0.9375rem]";
 
 const navEl = ref<HTMLElement | null>(null);
 const openId = ref<string | null>(null);

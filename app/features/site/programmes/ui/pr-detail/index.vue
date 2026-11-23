@@ -26,6 +26,19 @@
       </template>
     </NPageHero>
 
+    <NSection v-if="area.story" tone="cream" labelledby="story-title">
+      <NContainer size="narrow">
+        <NEyebrow>{{ area.title }}</NEyebrow>
+        <NHeading id="story-title" class="mt-4 text-forest-900">{{ area.story.heading }}</NHeading>
+        <div class="mt-6 grid gap-5 text-lg leading-relaxed text-base-600">
+          <p v-for="(para, i) in area.story.paragraphs" :key="i">{{ para }}</p>
+        </div>
+        <p class="font-display mt-8 text-2xl font-semibold text-forest-900">
+          {{ area.story.closing }}
+        </p>
+      </NContainer>
+    </NSection>
+
     <NSection tone="white" labelledby="focus-title">
       <NContainer class="grid gap-12 lg:grid-cols-[1fr_1.3fr]">
         <div>

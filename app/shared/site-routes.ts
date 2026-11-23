@@ -23,6 +23,9 @@ export const ROUTES = {
   volunteer: "/get-involved/volunteer",
   becomeMentor: "/get-involved/become-a-mentor",
   partner: "/get-involved/partner-with-us",
+  backToSchool: "/back-to-school",
+  sponsorChild: "/back-to-school/sponsor-a-child",
+  applySponsorship: "/back-to-school/apply",
   news: "/news",
   story: "/news/stories",
   contact: "/contact",
@@ -30,6 +33,8 @@ export const ROUTES = {
   privacy: "/privacy-policy",
   terms: "/terms",
   credits: "/credits",
+  /** Unlisted: a printable QR code for the storybook. Linked from nowhere on the site. */
+  storybookQr: "/qr/storybook",
 } as const;
 
 /** Focus-area slugs: /what-we-do/<slug>. The programmes slice owns their content. */
@@ -56,7 +61,12 @@ export const causePath = (slug: CauseSlug) => `${ROUTES.causes}/${slug}`;
 export const focusAreaPath = (slug: FocusAreaSlug) => `${ROUTES.whatWeDo}/${slug}`;
 
 /** Private pages: prerendered, but kept out of the sitemap and search engines. */
-export const NOINDEX_PATHS: string[] = [ROUTES.cart, ROUTES.checkout, ROUTES.checkoutComplete];
+export const NOINDEX_PATHS: string[] = [
+  ROUTES.cart,
+  ROUTES.checkout,
+  ROUTES.checkoutComplete,
+  ROUTES.storybookQr,
+];
 
 /** Paths prerendered at build time (the sitemap lists them all except NOINDEX_PATHS). */
 export const PRERENDER_PATHS: string[] = [

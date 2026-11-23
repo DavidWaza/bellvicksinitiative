@@ -127,6 +127,23 @@
               </NField>
             </div>
 
+            <NField
+              v-slot="f"
+              label="Additional information"
+              optional
+              hint="Anything you'd like us to know: a dedication, how you'd like to give, or a question."
+              :error="errors.message"
+            >
+              <NTextarea
+                :id="f.id"
+                v-model="message"
+                v-bind="messageAttrs"
+                :rows="4"
+                :aria-describedby="f.describedby"
+                :invalid="f.invalid"
+              />
+            </NField>
+
             <NButton type="submit" size="lg" :disabled="isSubmitting || isPending" class="w-full">
               <NIcon
                 :name="isSubmitting || isPending ? 'spinner' : 'heart'"
@@ -225,6 +242,7 @@ const [frequency] = defineField("frequency");
 const [amount] = defineField("amount");
 const [name, nameAttrs] = defineField("name");
 const [email, emailAttrs] = defineField("email");
+const [message, messageAttrs] = defineField("message");
 
 const presets = computed(() => PRESET_AMOUNTS[(currency.value ?? "NGN") as Currency]);
 // Switching currency resets the amount to that currency's second preset.

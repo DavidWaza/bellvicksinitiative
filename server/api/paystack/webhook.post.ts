@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       paystackApi<{ data?: PaystackTransaction }>(
         `/transaction/verify/${encodeURIComponent(reference)}`,
       )
-        .then((res) => (isGenuinePayment(res?.data) ? emailPaidOrder(res.data) : undefined))
+        .then((res) => (isGenuinePayment(res?.data) ? handlePaidOrder(res.data) : undefined))
         .catch(() => undefined),
     );
   }

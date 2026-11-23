@@ -81,7 +81,6 @@ const [motivation, motivationAttrs] = defineField("motivation");
 const onSubmit = handleSubmit(async (values) => {
   try {
     await submit(values);
-    push.success({ title: "Thank you!", message: "We've received your mentor application." });
     resetForm();
     emit("sent");
   } catch (error) {

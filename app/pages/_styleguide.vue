@@ -44,7 +44,7 @@
             has access to education, opportunity and the resources they need to thrive.
           </p>
           <NEyebrow>Eyebrow · DM Sans 700 · 12px · 0.18em</NEyebrow>
-          <p class="font-hand text-3xl text-coral-700">Caveat accent · Since 2018 ♥</p>
+          <p class="font-hand text-3xl text-coral-700">Caveat accent · Since 2014 ♥</p>
         </div>
       </section>
 

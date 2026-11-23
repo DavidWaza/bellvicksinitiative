@@ -8,7 +8,10 @@ import {
   AVAILABILITY_OPTIONS,
   mentorSchema,
   partnerSchema,
+  PARTNER_KINDS,
+  PARTNERSHIP_TYPES,
   volunteerSchema,
+  VOLUNTEER_ROLES,
 } from "../../../app/features/site/involved/domain/involved-forms";
 import {
   DONATION_TARGETS,
@@ -45,7 +48,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   volunteer: {
     schema: volunteerSchema,
     email: (v) => ({
-      subject: `Volunteer application from ${v.name}`,
+      subject: `Volunteer application from ${v.name}${v.newsletter ? " (+ newsletter)" : ""}`,
       title: "New volunteer application",
       replyTo: String(v.email),
       fields: [
@@ -53,8 +56,10 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
         ["Email", String(v.email)],
         ["Phone", v.phone as string],
         ["Location", v.location as string],
+        ["Volunteering as", label(VOLUNTEER_ROLES, v.role)],
         ["Availability", label(AVAILABILITY_OPTIONS, v.availability)],
         ["Skills", v.skills as string],
+        ["Newsletter", v.newsletter ? "Yes, subscribe them to the newsletter" : "No"],
       ],
     }),
   },
@@ -70,10 +75,29 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   partner: {
     schema: partnerSchema,
     email: (v) => ({
-      subject: `Partnership enquiry from ${v.organisation}`,
+      subject:
+        v.partnerKind === "individual"
+          ? `Partnership enquiry (Individual): ${v.title} ${v.name}`
+          : `Partnership enquiry (${label(PARTNER_KINDS, v.partnerKind)}): ${v.organisation}`,
       title: "New partnership enquiry",
       replyTo: String(v.email),
-      fields: Object.entries(v).map(([k, val]) => [titleCaseKey(k), val as string]),
+      fields: [
+        ["Partnering as", label(PARTNER_KINDS, v.partnerKind)],
+        ...(v.partnerKind === "individual"
+          ? [["Name", `${v.title} ${v.name}`] as [string, string]]
+          : [
+              [`${label(PARTNER_KINDS, v.partnerKind)} name`, String(v.organisation)] as [
+                string,
+                string,
+              ],
+              ["Contact person", String(v.name)] as [string, string],
+              ["Their role", v.jobTitle as string] as [string, string],
+            ]),
+        ["Email", String(v.email)],
+        ["Phone", v.phone as string],
+        ["Type of partnership", label(PARTNERSHIP_TYPES, v.partnershipType)],
+        ["Message", v.message as string],
+      ],
     }),
   },
   pledge: {
@@ -88,6 +112,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
         ["Cause", label(DONATION_TARGETS, v.target)],
         ["Amount", `${v.currency} ${Number(v.amount).toLocaleString("en-NG")}`],
         ["Frequency", v.frequency === "monthly" ? "Monthly" : "One-off"],
+        ["Additional information", v.message as string],
       ],
     }),
   },

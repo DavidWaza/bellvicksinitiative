@@ -19,8 +19,14 @@ export interface SiteEmail {
   subject: string;
   /** Heading inside the email. */
   title: string;
-  /** Rows of the details table, in order. Empty values are left out. */
-  fields: [label: string, value: string | number | undefined | null][];
+  /**
+   * Rows of the details table, in order. Empty values are left out. A row marked "heading"
+   * starts a new section (long forms such as the Back to School applications).
+   */
+  fields: (
+    | [label: string, value: string | number | undefined | null]
+    | [label: string, value: string, kind: "heading"]
+  )[];
   /** Lets Bellvicks answer the visitor with a plain "Reply". */
   replyTo?: string;
   attachments?: EmailAttachment[];
@@ -34,7 +40,9 @@ const escape = (s: string) =>
 
 function render(email: SiteEmail) {
   const rows = email.fields.filter(
-    ([, v]) => v !== undefined && v !== null && String(v).trim() !== "",
+    (row) =>
+      row[2] === "heading" ||
+      (row[1] !== undefined && row[1] !== null && String(row[1]).trim() !== ""),
   );
   const html = `<!doctype html><html><body style="margin:0;background:#fffbf5;font-family:Arial,Helvetica,sans-serif;color:#1d1a15">
 <div style="max-width:640px;margin:0 auto;padding:24px">
@@ -42,8 +50,10 @@ function render(email: SiteEmail) {
   <h1 style="margin:0 0 20px;font-size:22px;color:#0f3526">${escape(email.title)}</h1>
   <table role="presentation" style="width:100%;border-collapse:collapse;background:#ffffff;border-radius:12px">
     ${rows
-      .map(
-        ([label, value]) => `<tr>
+      .map(([label, value, kind]) =>
+        kind === "heading"
+          ? `<tr><td colspan="2" style="padding:18px 14px 8px;background:#e3f1e8;font-weight:bold;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0f3526">${escape(label)}</td></tr>`
+          : `<tr>
       <td style="padding:10px 14px;border-bottom:1px solid #ece3d6;vertical-align:top;width:34%;font-weight:bold;font-size:14px">${escape(label)}</td>
       <td style="padding:10px 14px;border-bottom:1px solid #ece3d6;font-size:14px;white-space:pre-wrap">${escape(String(value))}</td>
     </tr>`,
@@ -52,7 +62,9 @@ function render(email: SiteEmail) {
   </table>
   ${email.replyTo ? `<p style="margin:16px 0 0;font-size:13px;color:#625a4c">Reply to this email to answer ${escape(email.replyTo)} directly.</p>` : ""}
 </div></body></html>`;
-  const text = `${email.title}\n\n${rows.map(([l, v]) => `${l}: ${v}`).join("\n")}\n`;
+  const text = `${email.title}\n\n${rows
+    .map(([l, v, kind]) => (kind === "heading" ? `\n== ${l} ==` : `${l}: ${v}`))
+    .join("\n")}\n`;
   return { html, text };
 }
 
@@ -78,6 +90,36 @@ export async function sendSiteEmail(email: SiteEmail): Promise<void> {
     timeout: 30_000,
   });
 }
+
+/**
+ * Sends an email to a CUSTOMER (not one of our inboxes), e.g. a payment receipt. The caller builds
+ * the HTML; replies go to `replyTo` (one of our inboxes). Throws on failure.
+ */
+export async function sendCustomerEmail(email: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+}): Promise<void> {
+  const config = useRuntimeConfig();
+  if (!config.resendApiKey) throw new Error("Email isn't set up");
+  await $fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.resendApiKey}` },
+    body: {
+      from: config.emailFrom,
+      to: [email.to],
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+      ...(email.replyTo ? { reply_to: email.replyTo } : {}),
+    },
+    timeout: 30_000,
+  });
+}
+
+export const escapeHtml = escape;
 
 /** Spam guard: at most `perHour` form emails per visitor per hour (shared store, see kv.ts). */
 export async function underFormLimit(ip: string, perHour = 10): Promise<boolean> {

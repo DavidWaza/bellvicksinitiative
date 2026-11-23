@@ -28,6 +28,7 @@
             brand-new adventures starring them. Pick the ones you love and we'll print them as
             keepsake books.
           </p>
+          <NGiveBack class="mt-5" />
           <div class="mt-8 flex items-center gap-2 min-[360px]:gap-2.5 sm:gap-3">
             <NButton
               :to="ROUTES.storybookCreate"
@@ -79,6 +80,13 @@
             Create your storybook <NIcon name="arrowRight" />
           </NButton>
         </div>
+      </NContainer>
+    </NSection>
+
+    <!-- The charity promise: each storybook sponsors a child into school -->
+    <NSection tone="white" spacing="sm" labelledby="give-back-title">
+      <NContainer>
+        <NGiveBack variant="banner" heading-id="give-back-title" />
       </NContainer>
     </NSection>
 

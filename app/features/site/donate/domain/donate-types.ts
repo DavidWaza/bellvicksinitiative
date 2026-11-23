@@ -53,5 +53,7 @@ export const pledgeSchema = yup.object({
     .trim()
     .email("Enter a valid email address.")
     .required("Please enter your email."),
+  /** Anything else the donor wants us to know (optional). */
+  message: yup.string().trim().max(1500, "Please keep it under 1,500 characters.").default(""),
 });
 export type DonationPledge = yup.InferType<typeof pledgeSchema>;

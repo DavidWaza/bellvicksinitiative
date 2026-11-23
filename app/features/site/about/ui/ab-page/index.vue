@@ -31,7 +31,7 @@
         <div>
           <NEyebrow>Our story</NEyebrow>
           <NHeading id="story-title" class="mt-4 text-forest-900"
-            >Working with communities since 2018</NHeading
+            >Working with communities since 2014</NHeading
           >
           <NProse class="mt-5">
             <p v-for="(p, i) in ABOUT.story" :key="i">{{ p }}</p>

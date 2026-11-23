@@ -89,6 +89,11 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
   (verify) or the **Paystack webhook** `/api/paystack/webhook` (HMAC-SHA512 signature checked;
   covers customers who close the tab). Both send in the background (`event.waitUntil`).
   `NUXT_PAYSTACK_API_BASE` exists only to test against a local stand-in Paystack.
+- **The customer gets a receipt** (`server/utils/storybook-receipt.ts`): "payment successful, thank
+  you, arrives within N days" (`NUXT_PUBLIC_STORYBOOK_DELIVERY_DAYS`, default 10, also on
+  `/checkout/complete`), with the order, totals and address; replies go to the storybook inbox.
+  `handlePaidOrder` sends it and the team email independently, each once (its own shared-store
+  marker). The logo loads from `<site>/brand/logo-160.png`, so it needs the deployed site.
 - **Never read `window.location.search` on a prerendered page's first mount.** While it hydrates,
   the router briefly replaces the address without its query string. `/checkout/complete` read it
   then, found no `?reference`, and no payment could ever be confirmed. Use `useRoute().query`.
@@ -193,6 +198,7 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
 | `features/site/involved` | `gi-` | `/get-involved` hub plus volunteer, mentor and partner forms (yup schemas live in the domain). |
 | `features/site/news` | `nw-` | `/news` and `/news/stories`. Production shows an empty state until a post is publishable. |
 | `features/site/contact` | `ct-` | `/contact`: details plus a message form. |
+| `features/site/sponsorship` | `bs-` | **Back to School** (`/back-to-school`, `/sponsor-a-child`, `/apply`): BGAI's paper "Sponsor's Application Form" and "Recipient Application Form", digitised field for field (statements worded as printed, in `domain/sponsorship-forms.ts`). Multipart post with photos (passports, document copies, shrunk in the browser) to `server/api/sponsorship/[form].post.ts`, which validates with the same yup schemas and emails the contact inbox with a reference number ("No.") and, for recipients, a blank "For official use only" box. Signatures are typed names, dated server-side (Lagos). |
 | `features/site/donate` | `dn-` | `/donate`: a **pledge**, not a payment. No payment provider yet; never fake a payment step. `?cause=<slug>` pre-selects a cause (applied after mount, because the page is prerendered). |
 | `features/site/legal` | `lg-` | Privacy, terms (plain-language **drafts**, flagged on the page) and `/credits`. |
 

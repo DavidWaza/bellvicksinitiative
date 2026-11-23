@@ -21,6 +21,8 @@ export interface FocusAreaPage {
   /** Causes on /causes that belong to this area. */
   relatedCauses: CauseSlug[];
   image: ImageSlot;
+  /** Optional long-form copy supplied by Bellvicks, shown in its own section. */
+  story?: { heading: string; paragraphs: string[]; closing: string };
 }
 
 export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
@@ -48,6 +50,17 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
     ],
     relatedCauses: ["keffi-books", "gwagwalada-books"],
     image: photo("/images/programmes/education.jpg", "classroomPupils", "Children learning"),
+    // Long-form copy: describes only the work listed above (no invented figures or activities).
+    story: {
+      heading: "Opening Doors Through Learning",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe every child deserves the chance to learn, whatever their circumstances. Education opens doors to opportunity, confidence and a better future, yet too many children are out of school or learning without the basic tools they need.",
+        "Our education work puts new books and learning materials into the hands of out-of-school children, starting with communities in Keffi and Gwagwalada. We work alongside families, local leaders, volunteers and partners to understand what children need, and to make learning possible wherever they are.",
+        "Through book drives, educational supplies and community partnerships, we aim to spark a love of reading and help children start, continue and enjoy their education.",
+        "Every book placed in a child's hands is a step towards a stronger, more hopeful future.",
+      ],
+      closing: "Because when a child learns, a whole community grows.",
+    },
   },
   {
     slug: "health",
@@ -73,6 +86,17 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
     ],
     relatedCauses: ["gwagwalada-food"],
     image: photo("/images/programmes/health.jpg", "familyMeal", "A family sharing a meal"),
+    // Long-form copy: describes only the work listed above (no invented figures or activities).
+    story: {
+      heading: "Healthy Children, Thriving Families",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe good health is the foundation for everything else. A well-nourished child is ready to learn, play and grow, and a healthy family is better able to face life's challenges.",
+        "Our health work focuses on nutrition, supporting vulnerable families in Gwagwalada with access to a healthy food supply. It is part of our commitment to the UN's Sustainable Development Goal 2: Zero Hunger.",
+        "Working with local communities, volunteers and partners, we provide practical humanitarian support to individuals and families when they need it most, and help build the conditions for healthier lives.",
+        "Together, we are working towards a future where no child goes hungry and every family has the strength to thrive.",
+      ],
+      closing: "Because every child deserves the strength to grow and the energy to dream.",
+    },
   },
   {
     slug: "skill-development",
@@ -98,6 +122,18 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
     ],
     relatedCauses: [],
     image: photo("/images/programmes/skills.jpg", "youthCircle", "Young people at a workshop"),
+    // Long-form copy: describes only the work listed above (no invented figures or activities).
+    story: {
+      heading: "Skills for a Self-Reliant Future",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe young people have enormous potential, and that the right skills can turn that potential into opportunity. Practical skills build confidence, open doors to work and enterprise, and help young people support themselves and their families.",
+        "Our skill development work focuses on hands-on learning that young people can put to use straight away. We encourage them to turn what they learn into real opportunities and to grow, step by step, towards self-reliance.",
+        "Working alongside communities, volunteers and partners, we aim to build resilience and independence that last long beyond any single programme.",
+        "Together, we are helping young people move from potential to purpose.",
+      ],
+      closing:
+        "Because when young people are equipped, they build futures for themselves and for others.",
+    },
   },
   {
     slug: "sustainability",
@@ -127,6 +163,17 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
       "waterWalk",
       "Clean water being collected",
     ),
+    // Long-form copy: describes only the work listed above (no invented figures or activities).
+    story: {
+      heading: "Lasting Change, Built Together",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe real progress is progress that lasts. Sustainable development means meeting today's needs in ways that keep benefiting communities for years to come.",
+        "Our sustainability work includes bringing a portable, clean water supply to communities in Lokoja. Clean water protects health, saves time and gives families, especially children, the chance to focus on learning and growing.",
+        "We design our work with communities, not just for them, so that the benefits continue after a project ends, and so that communities are better prepared to face and recover from hardship.",
+        "Together, we are building foundations that future generations can stand on.",
+      ],
+      closing: "Because the best change is the kind that keeps on giving.",
+    },
   },
   {
     slug: "community",
@@ -152,6 +199,17 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
     ],
     relatedCauses: [],
     image: photo("/images/programmes/community.jpg", "villageGathering", "A community gathering"),
+    // Supplied by Bellvicks.
+    story: {
+      heading: "Building Stronger Communities Together",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe that thriving communities are the foundation of a better future. Through our community-focused programs, we work alongside local leaders, families, volunteers, and partner organizations to identify needs, strengthen social connections, and create sustainable solutions that improve lives.",
+        "Our community activities are designed to promote inclusion, empowerment, and collective development. We support initiatives that foster social cohesion, provide relief to vulnerable individuals and families, encourage volunteerism, and create opportunities for people to actively participate in shaping the future of their communities.",
+        "Through outreach programs, community engagement projects, awareness campaigns, support services, and strategic partnerships, we strive to build resilient communities where every individual has the opportunity to thrive.",
+        "Together, we are creating environments where hope is restored, opportunities are expanded, and lasting impact is achieved.",
+      ],
+      closing: "Because when communities grow stronger, everyone benefits.",
+    },
   },
   {
     slug: "mentorship",
@@ -181,6 +239,17 @@ export const FOCUS_AREA_PAGES: FocusAreaPage[] = [
       "mentorLaptop",
       "A mentor guiding a young person",
     ),
+    // Long-form copy: describes only the work listed above (no invented figures or activities).
+    story: {
+      heading: "Guiding Young Lives, One Relationship at a Time",
+      paragraphs: [
+        "At Bellvicks Global Aid Initiative, we believe one caring adult can change a child's story. A mentor who listens, encourages and believes in a child can help them see what is possible, and find the confidence to pursue it.",
+        "Our mentorship programme offers children structured mentoring, with clear goals so that children and mentors both know what to expect. Mentors encourage learning, support personal growth and help children dream big.",
+        "We welcome caring adults who want to give their time, and the Bellvicks team supports every mentor throughout, so that each mentoring relationship is safe, positive and meaningful.",
+        "Together, we are raising a generation of children who know that someone believes in them.",
+      ],
+      closing: "Because every child deserves someone in their corner.",
+    },
   },
 ];
 

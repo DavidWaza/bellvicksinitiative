@@ -37,7 +37,8 @@ export default defineNuxtConfig({
 
   modules: ["@nuxt/fonts", "@nuxt/image", "@nuxtjs/sitemap", "@nuxtjs/robots", "notivue/nuxt"],
 
-  css: ["~/assets/css/tailwind.css"],
+  // Notivue's styles: without them its icons render huge and unpositioned.
+  css: ["notivue/notification.css", "notivue/animations.css", "~/assets/css/tailwind.css"],
 
   vite: { plugins: [tailwindcss()] },
 
@@ -108,6 +109,8 @@ export default defineNuxtConfig({
       storybookPriceNgn: -1,
       storybookDeliveryNigeriaNgn: -1,
       storybookDeliveryInternationalNgn: -1,
+      /** "Your order will arrive within N days" (receipt email + confirmation page). */
+      storybookDeliveryDays: 10,
       siteUrl: SITE_URL,
       // Set once a real 1200×630 social image exists, e.g. "/images/og/default.jpg".
       ogImage: process.env.NUXT_PUBLIC_OG_IMAGE ?? "/brand/og-image.png",

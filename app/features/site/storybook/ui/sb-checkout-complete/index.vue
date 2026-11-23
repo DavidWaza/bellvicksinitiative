@@ -24,11 +24,13 @@
           </h1>
           <p class="mt-3 text-base-600">
             We've received your payment of
-            <strong class="text-base-900">{{ formatMoney(order.total) }}</strong>. Paystack has
-            emailed your receipt to <strong class="text-base-900">{{ order.email }}</strong>, and
-            we'll be in touch to confirm the details of your books.
+            <strong class="text-base-900">{{ formatMoney(order.total) }}</strong>. Thank you for
+            your purchase! We've emailed your receipt to
+            <strong class="text-base-900">{{ order.email }}</strong>, and your order will arrive
+            within {{ deliveryDays }} days.
           </p>
           <p class="mt-2 text-sm text-base-550">Order reference: {{ order.reference }}</p>
+          <NGiveBack class="mt-5" />
           <ul role="list" class="mt-6 flex flex-col gap-1 font-bold text-forest-900">
             <li v-for="(b, i) in order.books" :key="i">{{ b.quantity }}× {{ b.title }}</li>
           </ul>
@@ -66,6 +68,7 @@ import type { PaidOrder } from "../../domain/cart-types";
  */
 const { confirmPayment } = useCheckout();
 const cart = useCart();
+const deliveryDays = Number(useRuntimeConfig().public.storybookDeliveryDays) || 10;
 
 const state = ref<"checking" | "paid" | "failed">("checking");
 const order = ref<PaidOrder | null>(null);

@@ -47,8 +47,16 @@ for (const file of readdirSync(SRC).filter((f) => /\.(png|webp|jpe?g)$/i.test(f)
   const meta = await sharp(trimmed).metadata();
   const height = Math.min(HEIGHT, meta.height);
   const resized = sharp(trimmed).resize({ height, withoutEnlargement: true });
-  await resized.clone().webp({ quality: 90, alphaQuality: 100 }).toFile(join(OUT, `${slug}.webp`));
-  await resized.clone().png({ compressionLevel: 9 }).toFile(join(OUT, `${slug}.png`));
+  await resized
+    .clone()
+    .webp({ quality: 90, alphaQuality: 100 })
+    .toFile(join(OUT, `${slug}.webp`));
+  await resized
+    .clone()
+    .png({ compressionLevel: 9 })
+    .toFile(join(OUT, `${slug}.png`));
   const out = await sharp(join(OUT, `${slug}.png`)).metadata();
-  console.log(`${slug}: ${out.width}×${out.height}${DARKEN_WHITE.has(slug) ? " (white text darkened)" : ""}`);
+  console.log(
+    `${slug}: ${out.width}×${out.height}${DARKEN_WHITE.has(slug) ? " (white text darkened)" : ""}`,
+  );
 }

@@ -33,8 +33,9 @@ export const ROUTES = {
   privacy: "/privacy-policy",
   terms: "/terms",
   credits: "/credits",
-  /** Unlisted: a printable QR code for the storybook. Linked from nowhere on the site. */
+  /** Unlisted printable QR codes (shared/qr-codes.json). Linked from nowhere on the site. */
   storybookQr: "/qr/storybook",
+  donateQr: "/qr/donate",
 } as const;
 
 /** Focus-area slugs: /what-we-do/<slug>. The programmes slice owns their content. */
@@ -66,6 +67,7 @@ export const NOINDEX_PATHS: string[] = [
   ROUTES.checkout,
   ROUTES.checkoutComplete,
   ROUTES.storybookQr,
+  ROUTES.donateQr,
 ];
 
 /** Paths prerendered at build time (the sitemap lists them all except NOINDEX_PATHS). */

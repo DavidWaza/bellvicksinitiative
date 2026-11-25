@@ -45,7 +45,13 @@ const side = Math.max(trimmed.info.width, trimmed.info.height);
 const pad = Math.round(side * 0.04);
 const square = await sharp(trimmed.data)
   .resize({ width: side, height: side, fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-  .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .extend({
+    top: pad,
+    bottom: pad,
+    left: pad,
+    right: pad,
+    background: { r: 0, g: 0, b: 0, alpha: 0 },
+  })
   .png()
   .toBuffer();
 

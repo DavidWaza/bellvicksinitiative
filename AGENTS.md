@@ -20,6 +20,7 @@ node scripts/generate-dot-map.mjs  # regenerate the dotted world-map path
 node scripts/generate-icons.mjs    # regenerate app/utils/icon-paths.ts after adding an icon
 node scripts/generate-logo.mjs     # regenerate public/brand/* + favicon.ico from brand/logo-source.jpg
 node scripts/generate-partner-logos.mjs  # trim/re-ink brand/partners/* into public/partners/
+node scripts/generate-qr.mjs       # printable QR codes from shared/qr-codes.json (unlisted /qr/<name> pages)
 ```
 
 **The loop is `oxfmt` → `oxlint` → `typecheck`, then `knip`.** There is no test suite, on purpose

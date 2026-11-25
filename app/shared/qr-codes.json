@@ -1,0 +1,12 @@
+{
+  "storybook": {
+    "url": "https://www.bellvicksinitiative.org/create-your-storybook",
+    "title": "Create your storybook",
+    "line": "A picture book where your child is the hero. Scan to start."
+  },
+  "donate": {
+    "url": "https://www.bellvicksinitiative.org/donate",
+    "title": "Make a donation",
+    "line": "Support children and communities across Nigeria. Scan to give."
+  }
+}

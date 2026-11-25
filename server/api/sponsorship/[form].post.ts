@@ -24,7 +24,8 @@ import type { EmailAttachment, SiteEmail } from "../../utils/email";
 /**
  * POST /api/sponsorship/sponsor | recipient — Back to School applications (the digitised paper
  * forms). multipart/form-data: `data` (JSON, validated with the same yup schema as the browser)
- * plus photos by field name. Emailed to the CONTACT inbox with the photos attached, a reference
+ * plus photos by field name. Sponsor applications go to the DONATIONS inbox, recipient
+ * applications to the CONTACT inbox, with the photos attached, a reference
  * number (the paper form's "No.") and, for recipients, a blank "For official use only" box.
  */
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -227,7 +228,12 @@ export default defineEventHandler(async (event) => {
   }));
 
   try {
-    await sendSiteEmail({ inbox: "contact", ...email, attachments });
+    // Sponsors are giving money → donations; recipient applications → the main inbox.
+    await sendSiteEmail({
+      inbox: form === "sponsor" ? "donations" : "contact",
+      ...email,
+      attachments,
+    });
   } catch (e) {
     // oxlint-disable-next-line no-console
     console.error("[sponsorship email]", form, (e as { data?: unknown })?.data ?? e);

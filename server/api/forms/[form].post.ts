@@ -20,7 +20,8 @@ import {
 import { newsletterSchema } from "../../../app/features/site/newsletter/domain/newsletter-types";
 
 /**
- * POST /api/forms/:form — emails a website form to the CONTACT inbox (NUXT_CONTACT_EMAIL).
+ * POST /api/forms/:form — emails a website form to its inbox: volunteer, mentor, partner,
+ * donations (pledges) or contact (NUXT_CONTACT_EMAIL, also the fallback for any unset inbox).
  * Forms: contact, volunteer, mentor, partner, pledge, newsletter, interest (homepage sheet). Each is validated here with the
  * same schema the browser uses (never trust the browser). Storybook emails go to the storybook
  * inbox instead (server/api/storybook/*).
@@ -30,9 +31,20 @@ const label = (options: { value: string; label: string }[], value: unknown) =>
 
 type Builder = (v: Record<string, unknown>) => Omit<SiteEmail, "inbox">;
 
-const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
+/** Which inbox each form goes to (server/utils/email.ts; unset inboxes fall back to contact). */
+type Route = Inbox | ((v: Record<string, unknown>) => Inbox);
+
+/** Homepage sign-up: sent to the inbox for what the visitor chose. */
+const INTEREST_INBOX: Record<string, Inbox> = {
+  Volunteer: "volunteer",
+  "Become a mentor": "mentor",
+  "Partner with us": "partner",
+};
+
+const FORMS: Record<string, { schema: AnyObjectSchema; inbox: Route; email: Builder }> = {
   contact: {
     schema: contactSchema,
+    inbox: "contact",
     email: (v) => ({
       subject: `Contact form: ${label(CONTACT_TOPICS, v.topic)} from ${v.name}`,
       title: "New message from the contact form",
@@ -47,6 +59,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   volunteer: {
     schema: volunteerSchema,
+    inbox: "volunteer",
     email: (v) => ({
       subject: `Volunteer application from ${v.name}${v.newsletter ? " (+ newsletter)" : ""}`,
       title: "New volunteer application",
@@ -65,6 +78,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   mentor: {
     schema: mentorSchema,
+    inbox: "mentor",
     email: (v) => ({
       subject: `Mentor application from ${v.name}`,
       title: "New mentor application",
@@ -74,6 +88,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   partner: {
     schema: partnerSchema,
+    inbox: "partner",
     email: (v) => ({
       subject:
         v.partnerKind === "individual"
@@ -102,6 +117,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   pledge: {
     schema: pledgeSchema,
+    inbox: "donations",
     email: (v) => ({
       subject: `Donation pledge from ${v.name}`,
       title: "New donation pledge (no payment taken)",
@@ -118,6 +134,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   // The homepage "Join our volunteer network" sheet.
   interest: {
+    inbox: (v) => INTEREST_INBOX[String(v.interest)] ?? "contact",
     schema: object({
       name: string().trim().required("Please tell us your name.").max(80),
       email: string()
@@ -143,6 +160,7 @@ const FORMS: Record<string, { schema: AnyObjectSchema; email: Builder }> = {
   },
   newsletter: {
     schema: newsletterSchema,
+    inbox: "contact",
     email: (v) => ({
       subject: `Newsletter sign-up: ${v.email}`,
       title: "New newsletter subscriber",
@@ -174,7 +192,8 @@ export default defineEventHandler(async (event) => {
     return apiFail("You've sent several forms in a short time. Please try again in an hour.");
 
   try {
-    await sendSiteEmail({ inbox: "contact", ...form.email(values) });
+    const inbox = typeof form.inbox === "function" ? form.inbox(values) : form.inbox;
+    await sendSiteEmail({ inbox, ...form.email(values) });
   } catch (e) {
     // oxlint-disable-next-line no-console
     console.error(

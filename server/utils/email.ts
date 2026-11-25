@@ -1,12 +1,18 @@
 /**
  * Sends site emails through Resend (https://resend.com), from the verified bellvicksinitiative.org
  * domain. Where each email goes is a setting, never a hard-coded address:
- *   - NUXT_STORYBOOK_EMAIL: storybook submissions and paid storybook orders
- *   - NUXT_CONTACT_EMAIL:   contact, volunteer, mentor, partner, pledge and newsletter forms
+ *   - NUXT_STORYBOOK_EMAIL: storybook questionnaires and paid storybook orders
+ *   - NUXT_VOLUNTEER_EMAIL: volunteer applications (and homepage sign-ups choosing "Volunteer")
+ *   - NUXT_MENTOR_EMAIL:    mentor applications (and sign-ups choosing "Become a mentor")
+ *   - NUXT_PARTNER_EMAIL:   partnership enquiries (and sign-ups choosing "Partner with us")
+ *   - NUXT_DONATIONS_EMAIL: donation pledges and Back to School sponsor applications
+ *   - NUXT_CONTACT_EMAIL:   everything else (contact, newsletter, Back to School recipient
+ *                           applications, "Not sure yet" sign-ups), and the fallback for any
+ *                           of the inboxes above that isn't set
  * Off until NUXT_RESEND_API_KEY is set.
  */
 
-export type Inbox = "storybook" | "contact";
+export type Inbox = "storybook" | "volunteer" | "mentor" | "partner" | "donations" | "contact";
 
 export interface EmailAttachment {
   filename: string;
@@ -71,7 +77,15 @@ function render(email: SiteEmail) {
 /** Sends one email. Throws on failure, so callers can answer with a failure envelope. */
 export async function sendSiteEmail(email: SiteEmail): Promise<void> {
   const config = useRuntimeConfig();
-  const to = email.inbox === "storybook" ? config.storybookEmail : config.contactEmail;
+  const INBOXES: Record<Inbox, unknown> = {
+    storybook: config.storybookEmail,
+    volunteer: config.volunteerEmail,
+    mentor: config.mentorEmail,
+    partner: config.partnerEmail,
+    donations: config.donationsEmail,
+    contact: config.contactEmail,
+  };
+  const to = String(INBOXES[email.inbox] || config.contactEmail || "");
   if (!config.resendApiKey || !to) throw new Error("Email isn't set up");
 
   const { html, text } = render(email);

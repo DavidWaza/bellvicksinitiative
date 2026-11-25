@@ -75,10 +75,13 @@ team names, its registration (CAC) number or book titles. **Never invent them.**
 
 - **Form emails (Resend).** Every form posts to our server, which emails it (`server/utils/email.ts`):
   storybook questionnaires (with the photo attached, `server/api/storybook/submission.post.ts`)
-  and paid orders (`checkout/verify.get.ts`, once per reference) → `NUXT_STORYBOOK_EMAIL`;
-  contact, volunteer, mentor, partner, pledge, newsletter and the homepage sign-up
-  (`server/api/forms/[form].post.ts`, validated with the same yup schemas) →
-  `NUXT_CONTACT_EMAIL`. Reply-To is the visitor. Browser side: `shared/form-post.ts`, which never
+  and paid orders (`checkout/verify.get.ts`, once per reference) → `NUXT_STORYBOOK_EMAIL`.
+  `server/api/forms/[form].post.ts` (validated with the same yup schemas) routes each form:
+  volunteer → `NUXT_VOLUNTEER_EMAIL`, mentor → `NUXT_MENTOR_EMAIL`, partner →
+  `NUXT_PARTNER_EMAIL`, pledge and Back to School sponsor applications → `NUXT_DONATIONS_EMAIL`,
+  the homepage sign-up by the interest chosen; contact, newsletter, Back to School recipient
+  applications and anything unmatched → `NUXT_CONTACT_EMAIL`, which is also the fallback for
+  any inbox left unset. Reply-To is the visitor. Browser side: `shared/form-post.ts`, which never
   pretends: if the server can't be reached it fails with "please email us at …". **Production
   doesn't read `.env`**: set these in Vercel → Settings → Environment Variables.
 - **Paid storybook orders email the storybook inbox ONCE, complete** (`server/utils/storybook-order.ts`):

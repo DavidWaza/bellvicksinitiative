@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
   const totals = cartTotals(items, pricing, customer.zone);
 
   const reference =
-    `BVSB-${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`.toUpperCase();
+    `BVSB-${Date.now().toString(36)}-${randomBytes(8).toString("hex")}`.toUpperCase(); // 64 random bits: not guessable
   const origin = getRequestURL(event).origin;
   const clip = (s: unknown, max: number) => String(s ?? "").slice(0, max);
 

@@ -81,11 +81,37 @@ const reference = ref("");
  * found no reference, so no payment could ever be confirmed (or emailed).
  */
 const route = useRoute();
+const router = useRouter();
 const paramOf = () =>
   String(route.query.reference ?? route.query.trxref ?? "") ||
   new URLSearchParams(window.location.search).get("reference") ||
   new URLSearchParams(window.location.search).get("trxref") ||
   "";
+
+/**
+ * Paystack always returns the customer with ?trxref=…&reference=… (it can't be turned off). The
+ * reference isn't a secret — it can't fake or repeat a payment, our server verifies it with
+ * Paystack — but it needn't sit in the address bar, history or a shared screenshot. So it's kept
+ * for this tab only (a reload still confirms) and removed from the address once read.
+ */
+const SESSION_KEY = "bv-payment-reference";
+const readSession = () => {
+  try {
+    return sessionStorage.getItem(SESSION_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+function keepForThisTab(ref: string) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, ref);
+  } catch {
+    // Private mode: a reload just won't remember it.
+  }
+}
+
+// Don't send this page's address to any other site (e.g. in a Referer header).
+useHead({ meta: [{ name: "referrer", content: "no-referrer" }] });
 
 onMounted(async () => {
   reference.value = paramOf();
@@ -93,6 +119,12 @@ onMounted(async () => {
   for (let i = 0; !reference.value && i < 10; i++) {
     await new Promise((r) => setTimeout(r, 100));
     reference.value = paramOf();
+  }
+  if (reference.value) {
+    keepForThisTab(reference.value);
+    await router.replace({ query: {} });
+  } else {
+    reference.value = readSession();
   }
   if (!reference.value) {
     state.value = "failed";

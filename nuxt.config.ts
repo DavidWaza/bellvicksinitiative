@@ -95,10 +95,14 @@ export default defineNuxtConfig({
     paystackSecretKey: "",
     /** Paystack API address. Only changed for local testing against a stand-in server. */
     paystackApiBase: "https://api.paystack.co",
-    // Form emails via Resend (server only). Storybook → storybookEmail; every other form →
-    // contactEmail. The sender must be on a domain verified in Resend.
+    // Form emails via Resend (server only); see server/utils/email.ts for which form goes where.
+    // Each inbox left empty falls back to contactEmail. The sender's domain must be verified.
     resendApiKey: "",
     storybookEmail: "",
+    volunteerEmail: "",
+    mentorEmail: "",
+    partnerEmail: "",
+    donationsEmail: "",
     contactEmail: "",
     emailFrom: "Bellvicks Initiative website <website@bellvicksinitiative.org>",
     public: {

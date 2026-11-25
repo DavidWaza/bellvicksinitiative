@@ -5,12 +5,21 @@ import type { PaidOrder } from "../../../../app/features/site/storybook/domain/c
  * succeeded. Never trust the redirect alone: a customer could open /checkout/complete by hand.
  * The amount is checked against the total our own server computed (stored in the metadata).
  * On success the storybook team gets the order email (once; see server/utils/storybook-order.ts).
+ *
+ * The reference itself is not a secret (Paystack puts it in the return address): it can't fake or
+ * repeat a payment. Still, checks are rate-limited and the reply shows a partly hidden email.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
   const reference = String(getQuery(event).reference ?? "");
   if (!config.paystackSecretKey || !/^[A-Z0-9-]{6,60}$/i.test(reference))
     return apiFail("We couldn't find that payment.");
+
+  // Stops anyone trying references one after another (each check is a call to Paystack).
+  const ip = getRequestIP(event, { xForwardedFor: true }) ?? "unknown";
+  const hour = Math.floor(Date.now() / 3_600_000);
+  if ((await kvIncr(`limit:verify:${ip}:${hour}`, 3600)) > 30)
+    return apiFail("Too many checks just now. Please try again in an hour, or contact us.");
 
   const res = await paystackApi<{ data?: PaystackTransaction }>(
     `/transaction/verify/${encodeURIComponent(reference)}`,
@@ -32,7 +41,8 @@ export default defineEventHandler(async (event) => {
 
   const paid: PaidOrder = {
     reference: tx.reference,
-    email: tx.customer?.email ?? "",
+    // Partly hidden: anyone holding the link sees this page, so don't show the full address.
+    email: maskEmail(tx.customer?.email ?? ""),
     total: tx.amount / 100,
     books: (tx.metadata?.order?.items ?? []).map((i) => ({
       title: i.title,
@@ -42,3 +52,10 @@ export default defineEventHandler(async (event) => {
   };
   return { status: true as const, message: "", data: paid };
 });
+
+/** "idemeto@gmail.com" → "id•••@gmail.com". */
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!user || !domain) return "";
+  return `${user.slice(0, Math.min(2, user.length - 1))}•••@${domain}`;
+}

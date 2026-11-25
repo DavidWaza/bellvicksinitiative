@@ -11,15 +11,17 @@ export default function useCheckoutApp(options: { deps: { mutationPort: Checkout
   async function startPayment(customer: CheckoutDetails, items: CartItem[]): Promise<string> {
     const res = await start.mutateAsync({
       customer,
-      // Everything the storybook team needs per book. Each child's photo is sent ONCE (on their
-      // first book), keeping the request well under Vercel's 4.5 MB limit.
-      items: items.map(({ bookId, title, quantity, child, inspiredBy, photo }, n) => ({
+      // Everything the storybook team needs per book, including its AI cover (shrunk on the way
+      // out by the adapter). Each child's photo is sent ONCE (on their first book), keeping the
+      // request well under Vercel's 4.5 MB limit.
+      items: items.map(({ bookId, title, quantity, child, inspiredBy, photo, coverUrl }, n) => ({
         bookId,
         title,
         quantity,
         child,
         inspiredBy,
         photo: items.findIndex((other) => other.photo === photo) === n ? photo : undefined,
+        cover: coverUrl,
       })),
     });
     const data = unwrapApiResponse(res, "We couldn't start the payment. Please try again.").data;

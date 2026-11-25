@@ -32,6 +32,7 @@ export interface PaystackTransaction {
         quantity: number;
         inspiredBy?: string[];
         hasPhoto?: boolean;
+        hasCover?: boolean;
         child?: PaystackChild;
       }[];
       customer?: Record<string, string | undefined>;
@@ -85,6 +86,26 @@ async function heldPhotos(reference: string): Promise<HeldPhoto[]> {
   }
 }
 
+/**
+ * Each book's AI cover (base64 JPEG, ~100 KB), by cart line. One store entry per cover, so a
+ * large order never passes the per-value limit. `null` = that book has no AI cover.
+ */
+export async function holdOrderCovers(reference: string, covers: (string | null)[]) {
+  await Promise.all(
+    covers.map((c, n) =>
+      c && c.length <= MAX_HELD_CHARS
+        ? kvSet(`order:cover:${reference}:${n}`, c, DAY_SECONDS)
+        : undefined,
+    ),
+  );
+}
+
+async function heldCover(reference: string, n: number): Promise<string | null> {
+  return (await kvGet(`order:cover:${reference}:${n}`).catch(() => null)) ?? null;
+}
+
+const fileSafe = (s: string) => s.replace(/[^\p{L}\p{N}-]+/gu, "-").replace(/^-+|-+$/g, "");
+
 // ---------------------------------------------------------------------------------------------
 // The order email.
 
@@ -117,6 +138,19 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
     .filter(Boolean)
     .join(", ");
 
+  // The covers the customer chose, attached as "<ref>-book-1-<title>-<child>.jpg".
+  const covers = await Promise.all(
+    items.map(async (i, n) => {
+      const content = i.hasCover ? await heldCover(tx.reference, n) : null;
+      return content
+        ? {
+            filename: `${tx.reference}-book-${n + 1}-${fileSafe(i.title)}-${fileSafe(i.child?.name ?? "")}.jpg`,
+            content,
+          }
+        : null;
+    }),
+  );
+
   const books = items
     .map((i, n) => {
       const ch = i.child ?? {};
@@ -131,6 +165,13 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
         ...answers,
         i.inspiredBy?.length ? `    Story inspired by: ${i.inspiredBy.join(", ")}` : "",
         `    Photo: ${i.hasPhoto ? "attached" : "not provided"}`,
+        `    Cover: ${
+          covers[n]
+            ? `attached (${covers[n]!.filename})`
+            : i.hasCover
+              ? "chosen, but not held any more (server restarted): ask the customer"
+              : "the drawn stand-in (no AI cover was made for this book)"
+        }`,
       ]
         .filter(Boolean)
         .join("\n");
@@ -162,6 +203,12 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
         ["Delivery notes", c.notes],
         ["Order", books],
         [
+          "Covers",
+          covers.some(Boolean)
+            ? `${covers.filter(Boolean).length} attached (the cover of each book chosen)`
+            : "None attached (no AI covers for these books)",
+        ],
+        [
           "Photos",
           photos.length
             ? `${photos.length} attached (one per child)`
@@ -170,12 +217,16 @@ export async function emailPaidOrder(tx: PaystackTransaction): Promise<void> {
               : "None provided",
         ],
       ],
-      attachments: photos.map((p) => ({
-        filename: `${tx.reference}-${p.child.replace(/[^\p{L}\p{N}-]+/gu, "-")}.${p.ext}`,
-        content: p.content,
-      })),
+      attachments: [
+        ...photos.map((p) => ({
+          filename: `${tx.reference}-${p.child.replace(/[^\p{L}\p{N}-]+/gu, "-")}.${p.ext}`,
+          content: p.content,
+        })),
+        ...covers.filter((c) => c !== null),
+      ],
     });
     await kvDel(`order:photos:${tx.reference}`);
+    await Promise.all(items.map((_, n) => kvDel(`order:cover:${tx.reference}:${n}`)));
   } catch (e) {
     await kvDel(marker).catch(() => undefined); // let the next attempt (reload or webhook retry) try again
     // oxlint-disable-next-line no-console

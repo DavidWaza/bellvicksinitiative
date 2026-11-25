@@ -227,7 +227,7 @@
               type="submit"
               size="lg"
               color="coral"
-              class="mt-6 h-auto min-h-14 w-full py-3 whitespace-normal"
+              class="mt-6 w-full px-6 whitespace-nowrap"
               :disabled="!chargeable || isStarting || isSubmitting"
             >
               <NIcon
@@ -237,7 +237,9 @@
               {{
                 isStarting || isSubmitting
                   ? "Opening Paystack…"
-                  : `Pay ${chargeable ? formatMoney(totals.total) : ""} with Paystack`
+                  : chargeable
+                    ? `Pay ${formatMoney(totals.total)}`
+                    : "Pay with Paystack"
               }}
             </NButton>
             <p v-if="!chargeable" class="mt-3 text-sm text-base-550">

@@ -138,8 +138,14 @@ export type CheckoutDetails = yup.InferType<typeof checkoutSchema>;
 /** What the browser sends to start a payment. */
 export interface CheckoutRequest {
   customer: CheckoutDetails;
-  items: Pick<CartItem, "bookId" | "title" | "quantity" | "child" | "inspiredBy" | "photo">[];
+  items: (Pick<CartItem, "bookId" | "title" | "quantity" | "child" | "inspiredBy" | "photo"> & {
+    /** The book's AI cover, shrunk for the order email (JPEG data URL). */
+    cover?: string;
+  })[];
 }
+
+/** A cover sent with an order is a JPEG data URL of at most this many characters (~300 KB). */
+export const MAX_ORDER_COVER_CHARS = 400_000;
 
 /** What the browser gets back after Paystack confirms a payment. */
 export interface PaidOrder {

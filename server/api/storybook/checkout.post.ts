@@ -9,6 +9,7 @@ import {
   cartTotals,
   checkoutSchema,
   MAX_CART_LINES,
+  MAX_ORDER_COVER_CHARS,
   MAX_PHOTO_CHARS,
   MAX_QUANTITY,
   type CheckoutRequest,
@@ -81,6 +82,13 @@ export default defineEventHandler(async (event) => {
   }
   const hasPhoto = items.map((i) => photos.some((p) => p.child === childKey(i)));
 
+  // Each book's AI cover (shrunk by the browser), held for the order email like the photos.
+  const covers = items.map((i) =>
+    typeof i.cover === "string" && i.cover.length <= MAX_ORDER_COVER_CHARS
+      ? (i.cover.match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/)?.[1] ?? null)
+      : null,
+  );
+
   const res = await paystackApi<{
     status: boolean;
     message: string;
@@ -129,6 +137,7 @@ export default defineEventHandler(async (event) => {
               .slice(0, 6)
               .map((s) => clip(s, 80)),
             hasPhoto: hasPhoto[n],
+            hasCover: Boolean(covers[n]),
             child: {
               name: clip(i.child.name, NAME_MAX),
               age: i.child.age,
@@ -153,7 +162,7 @@ export default defineEventHandler(async (event) => {
   if (!res?.status || !res.data?.authorization_url)
     return apiFail("We couldn't start the payment just now. Please try again in a moment.");
 
-  await holdOrderPhotos(reference, photos);
+  await Promise.all([holdOrderPhotos(reference, photos), holdOrderCovers(reference, covers)]);
 
   return {
     status: true as const,

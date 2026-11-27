@@ -111,6 +111,16 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "Apply for sponsorship", href: ROUTES.applySponsorship, icon: "student" },
     ],
   },
+  {
+    id: "shop",
+    label: "Shop",
+    href: ROUTES.shop,
+    children: [
+      { label: "Shop for yourself", href: ROUTES.shop, icon: "shoppingBag" },
+      { label: "Give to a child", href: ROUTES.shopGive, icon: "heart" },
+      { label: "Donate an item", href: ROUTES.shopDonateItem, icon: "gift" },
+    ],
+  },
   { id: "news", label: "News", href: ROUTES.news },
   { id: "contact", label: "Contact", href: ROUTES.contact },
 ];
@@ -121,6 +131,7 @@ export const FOOTER_QUICK_LINKS: NavLeaf[] = [
   { label: "Create your storybook", href: ROUTES.storybook },
   { label: "Get involved", href: ROUTES.getInvolved },
   { label: "Back to School", href: ROUTES.backToSchool },
+  { label: "The Giving Shop", href: ROUTES.shop },
   { label: "News", href: ROUTES.news },
   { label: "Contact", href: ROUTES.contact },
 ];

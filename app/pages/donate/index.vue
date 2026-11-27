@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-// A pledge, not a payment: the payment provider (Paystack / Flutterwave) is a later phase.
+// Naira gifts are paid through Paystack; other currencies are pledged (see the donate slice).
 usePageSeo({
   title: "Send Relief — Bellvicks Initiative",
   description:

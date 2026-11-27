@@ -8,7 +8,7 @@
       </template>
     </NPageHero>
 
-    <NSection tone="white" aria-label="Make a pledge">
+    <NSection tone="white" aria-label="Give a gift">
       <NContainer class="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
         <NCard class="p-6 sm:p-8">
           <div v-if="pledged" role="status" class="flex flex-col items-center py-10 text-center">
@@ -31,17 +31,6 @@
           </div>
 
           <form v-else class="grid gap-6" novalidate @submit.prevent="onSubmit">
-            <div
-              class="flex items-start gap-3 rounded-2xl bg-sky-50 p-4 text-sm text-base-900"
-              role="note"
-            >
-              <NIcon name="info" size="1.4rem" class="shrink-0 text-sky-700" />
-              <p>
-                <strong>Secure online payment is coming soon.</strong> For now, pledge your gift
-                here and we'll email you how to complete it.
-              </p>
-            </div>
-
             <NChoiceGroup
               v-model="frequency"
               legend="How often?"
@@ -144,16 +133,40 @@
               />
             </NField>
 
-            <NButton type="submit" size="lg" :disabled="isSubmitting || isPending" class="w-full">
+            <!-- Naira is paid online; other currencies can't be charged yet, so they're pledged. -->
+            <div
+              v-if="!payOnline"
+              class="flex items-start gap-3 rounded-2xl bg-sky-50 p-4 text-sm text-base-900"
+              role="note"
+            >
+              <NIcon name="info" size="1.4rem" class="shrink-0 text-sky-700" />
+              <p>
+                <strong>Online payment is in Naira.</strong> Gifts in {{ currency }} are pledged:
+                we'll email you how to complete your gift. To pay by card now, choose NGN (cards
+                from abroad are welcome).
+              </p>
+            </div>
+
+            <NButton
+              type="submit"
+              size="lg"
+              :disabled="busy"
+              class="w-full px-6 whitespace-nowrap"
+            >
               <NIcon
-                :name="isSubmitting || isPending ? 'spinner' : 'heart'"
+                :name="busy ? 'spinner' : 'heart'"
                 weight="fill"
-                :class="(isSubmitting || isPending) && 'animate-spin'"
+                :class="busy && 'animate-spin'"
               />
-              {{ isSubmitting || isPending ? "Sending…" : submitLabel }}
+              {{ busy ? (payOnline ? "Opening secure payment…" : "Sending…") : submitLabel }}
             </NButton>
             <p class="text-center text-xs text-base-550">
-              No payment is taken on this page. See our
+              <template v-if="payOnline">
+                <NIcon name="privacy" class="mr-1 inline align-[-2px]" />Secure payment by Paystack.
+                We never see your card details.
+              </template>
+              <template v-else>No payment is taken for a pledge.</template>
+              See our
               <NuxtLink :to="ROUTES.privacy" class="underline underline-offset-2"
                 >privacy policy</NuxtLink
               >.
@@ -210,8 +223,11 @@ import { formatMoney, SUPPORTED_CURRENCIES, type Currency } from "~/utils/format
 import type { IconName } from "~/utils/icons";
 import type { Tone } from "~/utils/tones";
 import {
+  canPayOnline,
   DONATION_TARGETS,
   FREQUENCIES,
+  MAX_ONLINE_GIFT_NGN,
+  MIN_ONLINE_GIFT_NGN,
   parseTarget,
   pledgeSchema,
   PRESET_AMOUNTS,
@@ -219,10 +235,10 @@ import {
 } from "../../domain/donate-types";
 
 const route = useRoute();
-const { pledge, isPending } = useDonate();
+const { pledge, startPayment, isPending } = useDonate();
 const pledged = ref<DonationPledge | null>(null);
 
-const { defineField, errors, handleSubmit, resetForm, isSubmitting } = useForm({
+const { defineField, errors, handleSubmit, resetForm, isSubmitting, setFieldError } = useForm({
   validationSchema: toTypedSchema(pledgeSchema),
   initialValues: {
     target: "greatest-need",
@@ -257,14 +273,46 @@ const amountText = computed({
   },
 });
 
+const payOnline = computed(() => canPayOnline(currency.value));
+/** Stays true while the browser leaves for Paystack's page. */
+const redirecting = ref(false);
+// Coming Back from Paystack's page restores this page from the browser cache: re-enable the button.
+const onPageShow = (e: PageTransitionEvent) => {
+  if (e.persisted) redirecting.value = false;
+};
+onMounted(() => window.addEventListener("pageshow", onPageShow));
+onBeforeUnmount(() => window.removeEventListener("pageshow", onPageShow));
+const busy = computed(() => isSubmitting.value || isPending.value || redirecting.value);
+
 const submitLabel = computed(() => {
   const value = amount.value
     ? formatMoney(amount.value, (currency.value ?? "NGN") as Currency)
     : "";
-  return `Pledge ${value}${frequency.value === "monthly" ? " a month" : ""}`.replace("  ", " ");
+  const verb = payOnline.value ? "Give" : "Pledge";
+  return `${verb} ${value}${frequency.value === "monthly" ? " a month" : ""}`.replace("  ", " ");
 });
 
 const onSubmit = handleSubmit(async (values) => {
+  if (canPayOnline(values.currency)) {
+    if (values.amount < MIN_ONLINE_GIFT_NGN || values.amount > MAX_ONLINE_GIFT_NGN) {
+      setFieldError(
+        "amount",
+        `Please give between ${formatMoney(MIN_ONLINE_GIFT_NGN)} and ${formatMoney(MAX_ONLINE_GIFT_NGN)} online.`,
+      );
+      return;
+    }
+    try {
+      const url = await startPayment(values);
+      redirecting.value = true;
+      window.location.assign(url); // Paystack's hosted page; it returns to /donate/complete
+    } catch (error) {
+      push.error({
+        title: "Couldn't start the payment",
+        message: error instanceof Error ? error.message : "Please try again.",
+      });
+    }
+    return;
+  }
   try {
     await pledge(values);
     pledged.value = values;

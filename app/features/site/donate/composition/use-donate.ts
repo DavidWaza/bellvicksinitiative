@@ -4,6 +4,6 @@ import useDonateServiceHttpAdapter from "../infrastructure/services/donate-servi
 
 /** THE SWAP POINT is the service line below. */
 export default function useDonate() {
-  const service = useDonateServiceHttpAdapter(); // emails via our server (server/api/forms)
+  const service = useDonateServiceHttpAdapter(); // our server: Paystack for naira gifts, email for pledges
   return useDonateApp({ deps: { mutationPort: useDonateMutationAdapter(service) } });
 }

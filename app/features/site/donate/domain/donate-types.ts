@@ -3,9 +3,10 @@ import { CAUSE_SLUGS, type CauseSlug } from "~/shared/site-routes";
 import { SUPPORTED_CURRENCIES, type Currency } from "~/utils/format-money";
 
 /**
- * A donation PLEDGE. There is no payment provider yet (Paystack / Flutterwave is a later phase),
- * so the page records the donor's intent and the team follows up with how to pay. Never fake a
- * payment step.
+ * Donations. Gifts in NAIRA are paid online through Paystack (one-off, or monthly as a Paystack
+ * subscription), always confirmed by our server. Paystack can't charge other currencies on this
+ * account yet, so a gift in USD, GBP, EUR or CAD is recorded as a PLEDGE and the team follows up
+ * with how to pay. Never fake a payment step.
  */
 export type DonationTarget = CauseSlug | "greatest-need";
 
@@ -57,3 +58,22 @@ export const pledgeSchema = yup.object({
   message: yup.string().trim().max(1500, "Please keep it under 1,500 characters.").default(""),
 });
 export type DonationPledge = yup.InferType<typeof pledgeSchema>;
+
+/** Online payment is in naira only (Paystack); other currencies are pledged. */
+export const canPayOnline = (currency: unknown) => currency === "NGN";
+
+/** Limits for an online gift, in naira (checked again on the server). */
+export const MIN_ONLINE_GIFT_NGN = 100;
+export const MAX_ONLINE_GIFT_NGN = 10_000_000;
+
+/** A paid gift, as confirmed by our server after Paystack. */
+export interface PaidDonation {
+  reference: string;
+  /** Partly hidden ("id•••@gmail.com"). */
+  email: string;
+  amount: number;
+  frequency: "once" | "monthly";
+  /** What the gift supports, e.g. "Clean water for Lokoja". */
+  target: string;
+  name: string;
+}

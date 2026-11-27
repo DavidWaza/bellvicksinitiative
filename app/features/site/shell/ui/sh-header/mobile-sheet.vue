@@ -40,7 +40,7 @@
           </button>
         </div>
 
-        <!-- Create your storybook, featured first -->
+        <!-- Create your storybook, featured first (also listed below as "Storybook") -->
         <NuxtLink
           :to="ROUTES.storybook"
           class="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-coral-100 p-4 text-base-950"
@@ -165,6 +165,7 @@ onBeforeUnmount(() => {
   document.documentElement.style.overflow = "";
 });
 
-// "Create your storybook" is featured above the list.
-const plainItems = NAV_ITEMS.filter((i) => !i.featured);
+// "Create your storybook" is featured above the list, and also listed in its usual place,
+// labelled simply "Storybook".
+const plainItems = NAV_ITEMS.map((i) => (i.featured ? { ...i, label: "Storybook" } : i));
 </script>

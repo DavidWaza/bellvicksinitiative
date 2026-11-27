@@ -17,8 +17,13 @@
       </li>
       <li><strong>Contact form:</strong> your name, email, topic and message.</li>
       <li>
-        <strong>Donation pledges:</strong> your name, email, the cause, amount, currency and
-        frequency you choose.
+        <strong>Donations and pledges:</strong> your name, email, the cause, amount, currency,
+        frequency and any message you add.
+      </li>
+      <li>
+        <strong>Item donations (The Giving Shop):</strong> the contact person's name, WhatsApp
+        number, email (optional), the item's location or pickup address, and the photos, receipt or
+        proof you upload.
       </li>
       <li>
         <strong>Storybook orders:</strong> your name, email, phone and delivery address, and the
@@ -27,10 +32,9 @@
       </li>
     </ul>
     <p>
-      <strong>Storybook payments are handled by Paystack.</strong> You pay on Paystack's secure
-      page; we never see or store your card or bank details. Paystack also receives your order
-      details so we can process and deliver it. Donations are pledges only: we don't take donation
-      payments on this website. Your cart is kept in your own browser until you check out. We do not
+      <strong>Storybook and donation payments are handled by Paystack.</strong> You pay on
+      Paystack's secure page; we never see or store your card or bank details. Paystack also
+      receives your order or gift details so we can process it. Your cart is kept in your own browser until you check out. We do not
       use analytics or advertising cookies.
     </p>
 

@@ -84,6 +84,24 @@ const ICON_SOURCES = {
   trash: "trash",
   upload: "upload-simple",
   user: "user",
+  // Shop
+  shop: "storefront",
+  shoppingBag: "shopping-bag-open",
+  tote: "handbag-simple",
+  tshirt: "t-shirt",
+  hoodie: "hoodie",
+  cap: "baseball-cap",
+  mug: "coffee",
+  notebook: "notebook",
+  stationery: "pencil-ruler",
+  truck: "truck",
+  tag: "tag",
+  package: "package",
+  returns: "arrow-counter-clockwise",
+  sliders: "sliders-horizontal",
+  sneaker: "sneaker",
+  sock: "sock",
+  backpack: "backpack",
 };
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));

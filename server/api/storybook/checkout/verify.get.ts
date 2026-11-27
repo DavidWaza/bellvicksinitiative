@@ -52,10 +52,3 @@ export default defineEventHandler(async (event) => {
   };
   return { status: true as const, message: "", data: paid };
 });
-
-/** "idemeto@gmail.com" → "id•••@gmail.com". */
-function maskEmail(email: string): string {
-  const [user, domain] = email.split("@");
-  if (!user || !domain) return "";
-  return `${user.slice(0, Math.min(2, user.length - 1))}•••@${domain}`;
-}

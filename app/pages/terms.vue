@@ -15,10 +15,11 @@
 
     <h2>Donations and pledges</h2>
     <p>
-      This website does not take payments. When you pledge a gift, we record your intention and
-      contact you about how to complete it. Nothing is charged until you complete your gift through
-      the method we agree with you. Full terms for online donations will be published when secure
-      online payment launches.
+      Gifts in Naira can be paid on this website through Paystack's secure payment page. A monthly
+      gift is charged to your card each month until you ask us to stop it: reply to your receipt
+      email or contact us. Gifts in other currencies are pledges: we record your intention and
+      contact you about how to complete it, and nothing is charged until you do. If you think a
+      payment was taken in error, please contact us with your reference.
     </p>
 
     <h2>Content and photos</h2>

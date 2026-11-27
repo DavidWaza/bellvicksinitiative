@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { DonationTransaction } from "../../utils/donation";
 
 /**
  * POST /api/paystack/webhook — Paystack calls this the moment a payment succeeds, even if the
@@ -6,7 +7,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * Settings → API Keys & Webhooks → Webhook URL: https://bellvicksinitiative.org/api/paystack/webhook
  *
  * Every request is checked against Paystack's signature (HMAC-SHA512 of the raw body with the
- * secret key), and the payment is re-verified with Paystack before the order email is sent.
+ * secret key), and the payment is re-verified with Paystack before any email is sent. Handles
+ * storybook orders (BVSB-) and Donate-page gifts (BVDN-).
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
@@ -39,6 +41,17 @@ export default defineEventHandler(async (event) => {
         `/transaction/verify/${encodeURIComponent(reference)}`,
       )
         .then((res) => (isGenuinePayment(res?.data) ? handlePaidOrder(res.data) : undefined))
+        .catch(() => undefined),
+    );
+  }
+  // Gifts from the Donate page (BVDN-). Later monthly charges carry Paystack's own references
+  // and are left to the Paystack dashboard.
+  if (body.event === "charge.success" && reference.startsWith(DONATION_REF_PREFIX)) {
+    event.waitUntil(
+      paystackApi<{ data?: DonationTransaction }>(
+        `/transaction/verify/${encodeURIComponent(reference)}`,
+      )
+        .then((res) => (isGenuineDonation(res?.data) ? handlePaidDonation(res.data) : undefined))
         .catch(() => undefined),
     );
   }

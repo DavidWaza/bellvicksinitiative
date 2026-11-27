@@ -155,6 +155,53 @@ export const STOCK_PHOTOS = {
     alt: "A city skyline with tall buildings under a bright sky",
     credit: unsplash("Chizon", "a-city-street-with-tall-buildings-in-the-background-LfRn3yxsrQo"),
   },
+  // The Giving Shop: plain, unbranded product stand-ins until Bellvicks photographs its goods.
+  shopTshirt: {
+    file: "/images/stock/shop-tshirt.jpg",
+    alt: "A plain white T-shirt on a wooden hanger",
+    credit: unsplash("Avtar Singh", "a-plain-white-t-shirt-hangs-on-a-wooden-hanger-8ACmRoleM24"),
+  },
+  shopTote: {
+    file: "/images/stock/shop-tote.jpg",
+    alt: "A plain natural canvas tote bag on a grey background",
+    credit: unsplash("Brando Makes Branding", "white-reusable-bag-on-gray-surface-smTDI-z1rlY"),
+  },
+  shopHoodie: {
+    file: "/images/stock/shop-hoodie.jpg",
+    alt: "A plain white hoodie on a hanger",
+    credit: unsplash("Mediamodifier", "white-hoodie-and-distressed-jeans-kJXGTOY1wLQ"),
+  },
+  shopCap: {
+    file: "/images/stock/shop-cap.jpg",
+    alt: "A plain white baseball cap on a grey background",
+    credit: unsplash("personalgraphic.com", "a-white-baseball-cap-on-a-gray-background-ozdzzeBu4Go"),
+  },
+  shopMug: {
+    file: "/images/stock/shop-mug.jpg",
+    alt: "A plain white ceramic mug",
+    credit: unsplash("Mediamodifier", "a-white-coffee-mug-xf38DdLyBvI"),
+  },
+  shopNotebook: {
+    file: "/images/stock/shop-notebook.jpg",
+    alt: "An open lined notebook with a pen and pencils on a desk",
+    credit: unsplash("Clay Banks", "open-notebook-with-pen-and-pencils-on-desk-n9AaeihA9HI"),
+  },
+  shopSchoolSet: {
+    file: "/images/stock/shop-school-set.jpg",
+    alt: "A notebook with coloured pencils, a ruler and clips on a pink desk",
+    credit: unsplash(
+      "Mediamodifier",
+      "a-notebook-pencils-ruler-tape-and-pencils-on-a-pink-lT4XuZoDrX8",
+    ),
+  },
+  shopGiftBox: {
+    file: "/images/stock/shop-gift-box.jpg",
+    alt: "Two gifts wrapped in brown kraft paper with a red ribbon",
+    credit: unsplash(
+      "Cemrecan Yurtman",
+      "two-wrapped-gifts-with-red-ribbon-and-confetti-ZogUJmll5ys",
+    ),
+  },
 } satisfies Record<string, StockPhoto>;
 
 export type StockPhotoKey = keyof typeof STOCK_PHOTOS;
